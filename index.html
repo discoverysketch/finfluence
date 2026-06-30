@@ -224,6 +224,13 @@
       <div class="pfnote">Your progress saves automatically on this device.</div></div>
   </div>
 
+  <div class="scroll hidden" id="solutions">
+    <div class="pathhead"><svg class="finn"><use href="#finn-sym"/></svg>
+      <div><div class="ttl">Oracle <span>Solutions</span></div><div class="sub">The products you sell — Fusion Cloud apps and Energy &amp; Water. Browse any deck.</div></div></div>
+    <div id="solList"></div>
+    <div class="chfoot" style="margin:18px 4px">Product facts summarized from oracle.com &amp; docs.oracle.com — verify current details before client use.</div>
+  </div>
+
   <div class="scroll hidden" id="vault">
     <div class="vhead">The <span>Vault</span></div><div class="vsub" id="vaultCount"></div><div id="vaultBody"></div>
   </div>
@@ -266,6 +273,7 @@
 
   <div class="nav hidden" id="nav">
     <button class="on" id="navPath"><span class="ni">🗺️</span>Path</button>
+    <button id="navSolutions"><span class="ni">🧩</span>Solutions</button>
     <button id="navVault"><span class="ni">🗝️</span>Vault</button>
     <button id="navChallenge"><span class="ni">🎯</span>Challenge</button>
   </div>
@@ -332,6 +340,34 @@ const UNITS=[
   {t:"The Subsidiaries",p:"Where do energy and your deals fit?",a:"BNSF rail, Berkshire Hathaway Energy (utilities!), McLane and TTI distribution, Duracell, Acme Brick, Brooks, Justin, and more.",b:"BHE links Berkshire back to the utilities unit; McLane is a real Oracle case.",c:"Standardizing finance across these subs is exactly the story you're already selling.",d:"BHE is the utilities link; McLane, TTI/Mouser, Duracell, CORT and Acme Brick are all on your account list."}]}
 ];
 
+/* ===== Oracle Solutions decks (sales enablement) — facts summarized from oracle.com & docs.oracle.com ===== */
+const SOLUTIONS=[
+ {n:"Oracle Fusion Cloud Applications",ic:"☁️",color:"#C74634",tl:"Discovery hook",dl:"🔗 The suite",cards:[
+  {t:"Oracle Fusion Cloud Applications",p:"What is the Fusion suite, in one line?",a:"Oracle's complete cloud (SaaS) business suite — ERP, EPM, HCM, SCM and CX — built on one common data and security model.",b:"One vendor, one suite, one source of truth: finance, HR, supply chain and customer data stop living in silos.",c:"Open with 'how many separate systems run your finance, HR and supply chain today?' — fragmentation is the opening.",d:"The pillars: ERP (finance), EPM (planning & close), HCM (people), SCM (supply chain), CX (front office)."},
+  {t:"One Data Model",p:"Why does 'one suite' actually matter?",a:"Every Fusion app shares a single data model and security model, so modules connect without custom integration.",b:"Finance, HR and operations reconcile automatically — no integration tax, no data that disagrees between systems.",c:"If their finance and HR numbers never quite match, that mismatch is the pain you solve.",d:"Contrast with bolting together separate ERP, HR and CRM products from different vendors."},
+  {t:"Quarterly Updates",p:"How does Oracle deliver new capability?",a:"Fusion ships new features every quarter (e.g. the 25x/26x releases) — no disruptive 're-implementation' upgrades.",b:"Customers get continuous innovation and stay current automatically, instead of falling years behind on-prem.",c:"Ask when they last upgraded their on-prem ERP — multi-year upgrade pain reframes 'cloud' as relief.",d:"Same quarterly cadence underpins ERP, HCM, SCM, EPM and CX together."},
+  {t:"Fusion AI & Agentic Apps",p:"What's Oracle's AI story in Fusion?",a:"AI is embedded across the suite, plus new Fusion Agentic Applications — objective-based workspaces where AI agents collaborate to reach an outcome.",b:"It automates routine finance, HR and supply-chain work — a concrete productivity and cost message.",c:"Ask where teams are stuck in manual, repetitive work — that's the agentic-AI use case.",d:"Recent releases added agentic apps across ERP, HCM, SCM and CX."},
+  {t:"Cloud vs EBS / PeopleSoft",p:"Where does Fusion fit for legacy Oracle shops?",a:"Fusion Cloud is the modern SaaS successor to on-prem Oracle E-Business Suite, PeopleSoft and JD Edwards.",b:"It gives legacy customers a clear, supported modernization path off aging on-prem systems.",c:"'Running EBS or PeopleSoft?' instantly frames the cloud-migration conversation.",d:"Utilities often run decades-old on-prem finance — a prime Fusion ERP modernization target."}]},
+ {n:"Oracle Cloud ERP",ic:"📊",color:"#0572CE",tl:"Discovery hook",dl:"⚡ Utility angle",cards:[
+  {t:"Oracle Cloud ERP",p:"What does Cloud ERP cover?",a:"Cloud financial management plus procurement, project management, and risk management — the finance system of record.",b:"It runs the close, reporting and controls every CFO is judged on. This is the core of most Oracle deals.",c:"Lead with 'how many days does your financial close take?' — a slow close surfaces pain fast.",d:"Utilities layer FERC and state-commission reporting on top of the standard close."},
+  {t:"Financials: GL, AP, AR, FA",p:"What's inside the financials core?",a:"General Ledger, Payables, Receivables, Fixed Assets and Cash Management — the books and sub-ledgers.",b:"It's where the three statements you teach actually get produced and tied out.",c:"Connect it back: this is the engine behind the income statement, balance sheet and cash flow.",d:"Fixed Assets matters enormously to a utility — net plant IS the rate base."},
+  {t:"Procurement & Source-to-Pay",p:"Why does procurement ride with ERP?",a:"Sourcing, purchasing, supplier management and payables in one source-to-pay flow.",b:"Tighter spend control and supplier risk visibility — direct margin and working-capital impact.",c:"Tie to working capital: faster, controlled procure-to-pay releases cash.",d:"Capital-heavy utilities buy enormous volumes of plant and materials — procurement scale is real."},
+  {t:"Risk Management & SOX",p:"How does ERP make controls easier?",a:"Advanced Financial Controls and Access Controls automate segregation-of-duties and continuous monitoring.",b:"Executives personally certify controls under SOX — automation cuts audit cost and material-weakness risk.",c:"This is the SOX & segregation-of-duties card from the Close unit, made into a product.",d:"Utilities answer to both the SEC and state commissions — double the audit scrutiny."},
+  {t:"AI in ERP",p:"What does agentic AI do for finance?",a:"AI agents automate invoice processing, anomaly detection, and account reconciliation inside the close.",b:"It compresses days-to-close and reduces manual error — a measurable ROI story.",c:"Pair with the reconciliation card: the 'spreadsheet graveyard' is exactly what AI eliminates.",d:"Reconciling regulatory assets/liabilities is utility-specific manual work AI can streamline."}]},
+ {n:"Energy & Water: Customer Cloud Service",ic:"💧",color:"#006B72",tl:"Discovery hook",dl:"🔗 Integrates with",cards:[
+  {t:"Customer Cloud Service (CCS)",p:"What is Oracle Utilities CCS?",a:"A cloud customer information system (CIS) — customer care, service orders, metering and billing in one SaaS product for utilities of all sizes.",b:"It's the utility's revenue and customer-engagement engine — billing accuracy and customer experience live here.",c:"Ask 'how old is your CIS / billing system?' — most utilities run aging on-prem CIS.",d:"Part of Oracle Energy and Water (formerly Oracle Utilities)."},
+  {t:"CIS + MDM + ODM in One",p:"What makes CCS more than a billing system?",a:"CCS combines Customer Care & Billing, Meter Data Management, and Operational Device Management as a single solution.",b:"Three systems become one — far fewer integrations to build, run and audit.",c:"If they run separate CIS, meter-data and device systems, the consolidation story is compelling.",d:"Pre-built integration to head-end and AMI (smart meter) systems is included."},
+  {t:"Billing for Regulated Rates",p:"Why is utility billing uniquely hard?",a:"CCS handles complex regulated rate structures, multiple service types, and pass-through cost recovery.",b:"Regulated rates and fuel/purchased-power recovery make billing logic far more complex than a normal invoice.",c:"Tie to the pass-through-costs card: this is where regulated revenue actually gets calculated.",d:"Supports one-to-many service types (electric, gas, water) on a single platform."},
+  {t:"Service Orders & Customer Care",p:"What about the customer side?",a:"Service order management plus multi-channel customer communication (web, mobile, contact center).",b:"Customer satisfaction and regulator-watched service metrics depend on this workflow.",c:"Ask about their self-service and contact-center experience — friction there is a CX opening.",d:"Captures data from multiple sources for a single view of the customer."},
+  {t:"Cloud vs On-Prem CC&B / C2M",p:"How does CCS relate to legacy products?",a:"CCS is the SaaS evolution of on-prem Customer Care & Billing (CC&B) and Customer to Meter (C2M).",b:"It gives existing CC&B/C2M customers a cloud path without abandoning the platform they know.",c:"'On CC&B on-premises?' immediately frames CCS as the cloud move.",d:"Many of your utility accounts still run on-prem CC&B today."}]},
+ {n:"Energy & Water: Network & Meter Data",ic:"⚡",color:"#9A6700",tl:"Discovery hook",dl:"🔗 Integrates with",cards:[
+  {t:"Network Management System (NMS)",p:"What is Oracle Utilities NMS?",a:"Real-time outage and distribution management for the electric grid — combining outage (OMS) and distribution (DMS) management.",b:"Grid reliability and outage response are board-level and regulator-watched — NMS runs them.",c:"Ask 'how do you manage outages and restoration today?' — reliability is always top-of-mind.",d:"Pairs with CCS so customer outage calls and the grid view stay in sync."},
+  {t:"Outage Management (OMS)",p:"What does the OMS half do?",a:"Predicts and locates outages, manages field crews, and orchestrates restoration.",b:"It directly drives SAIDI/SAIFI reliability metrics that regulators and customers judge utilities on.",c:"Reliability scores tie to rate cases — better outage response supports the regulated return story.",d:"Outage calls flow from CCS customers into NMS for a unified response."},
+  {t:"Distribution Management (DMS)",p:"What does the DMS half do?",a:"Monitors and controls the distribution network and supports distributed energy resources (DER).",b:"Grid modernization and rooftop-solar/EV growth make active distribution control essential.",c:"Tie to rate base: grid-modernization capex is exactly the rate-base growth utilities earn on.",d:"Supports the shift to a two-way grid as renewables and DER scale."},
+  {t:"Meter Data Management (MDM)",p:"What problem does MDM solve?",a:"Collects, validates (VEE), and stores massive volumes of smart-meter / AMI interval data.",b:"Accurate validated meter data is the foundation of correct billing and grid analytics.",c:"Ask about their AMI rollout — meter data volume explodes and needs industrial-scale management.",d:"Feeds validated reads straight into CCS billing; also available within CCS."},
+  {t:"CCS ↔ NMS Integration",p:"Why does the integration matter?",a:"Pre-built integration links the customer/metering system (CCS) to the grid system (NMS).",b:"One connected view of customer and grid — outages, service orders and metering stay consistent.",c:"The integration story is the differentiator: customer + grid + meter data on one Oracle stack.",d:"Documented in Oracle's Customer-to-Meter to Network Management System integration guides."}]}
+];
+
 const mastered=new Set();let xp=0,level=1,streak=0;const XP_LEVEL=70;
 const SAVE_KEY="finfluency_progress_v1";
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({mastered:[...mastered],xp,streak}));}catch(e){}}
@@ -339,6 +375,8 @@ function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");i
 function resetProgress(){mastered.clear();xp=0;level=1;streak=0;try{localStorage.removeItem(SAVE_KEY);}catch(e){}updateHUD();renderPath();toast("Progress reset");}
 const $=id=>document.getElementById(id);
 const cid=(u,c)=>u+"-"+c;
+const scid=(d,c)=>"S"+d+"-"+c;
+const deckMasteredCount=d=>SOLUTIONS[d].cards.reduce((n,_,c)=>n+(mastered.has(scid(d,c))?1:0),0);
 const unitMasteredCount=u=>UNITS[u].cards.reduce((n,_,c)=>n+(mastered.has(cid(u,c))?1:0),0);
 const unitDone=u=>unitMasteredCount(u)===UNITS[u].cards.length;
 const unitUnlocked=u=>u===0||unitDone(u-1);
@@ -348,12 +386,13 @@ function say(k){$("bubble").textContent=pick(SAY[k]);popFinn();}
 function popFinn(){const f=$("finn");if(!f)return;f.classList.remove("pop");void f.offsetWidth;f.classList.add("pop");}
 
 function show(scr){
-  ["start","path","vault","challenge","lesson"].forEach(s=>$(s).classList.add("hidden"));
-  const navOn=(scr==="path"||scr==="vault"||scr==="challenge");
+  ["start","path","solutions","vault","challenge","lesson"].forEach(s=>$(s).classList.add("hidden"));
+  const navOn=(scr==="path"||scr==="solutions"||scr==="vault"||scr==="challenge");
   $("topbar").classList.toggle("hidden",!navOn);$("nav").classList.toggle("hidden",!navOn);$("oraO").classList.toggle("hidden",!navOn);
   $(scr).classList.remove("hidden");
-  ["navPath","navVault","navChallenge"].forEach(b=>$(b).classList.remove("on"));
+  ["navPath","navSolutions","navVault","navChallenge"].forEach(b=>$(b).classList.remove("on"));
   if(scr==="path"){renderPath();$("navPath").classList.add("on");}
+  if(scr==="solutions"){renderSolutions();$("navSolutions").classList.add("on");}
   if(scr==="vault"){renderVault();$("navVault").classList.add("on");}
   if(scr==="challenge"){$("navChallenge").classList.add("on");chReset();}
 }
@@ -369,37 +408,52 @@ function renderPath(){
       <div class="ct">${mc} / ${tot} mastered</div></div><div class="badge">${done?"✅":unlocked?"":"🔒"}</div></div>`;});
   $("unitList").innerHTML=h;updateHUD();
 }
-function renderVault(){
-  const tot=UNITS.reduce((n,u)=>n+u.cards.length,0);
-  $("vaultCount").textContent=`${mastered.size} of ${tot} cards collected. Tap a card to revisit it.`;
+function renderSolutions(){
   let h="";
-  UNITS.forEach((u,i)=>{h+=`<div class="vgroup"><h3><span class="dot" style="background:${u.color}"></span>${u.n}</h3><div class="vgrid">`;
-    u.cards.forEach((c,ci)=>{const col=mastered.has(cid(i,ci));
-      h+=`<div class="vcard ${col?"collected":""}" ${col?`onclick="viewCard(${i},${ci})"`:""}><div class="vt">${col?c.t:"🔒 Locked"}</div><div class="vlock">${col?"Collected ✓":"Master to unlock"}</div></div>`;});
-    h+=`</div></div>`;});
+  SOLUTIONS.forEach((u,i)=>{const mc=deckMasteredCount(i),tot=u.cards.length,done=mc===tot;
+    h+=`<div class="unit" style="border-left-color:${u.color}" onclick="openDeck(${i})">
+      <div class="ic">${u.ic}</div><div class="meta"><div class="unitno">DECK ${i+1}</div><div class="nm">${u.n}</div>
+      <div class="pg"><div class="pgf" style="width:${mc/tot*100}%;background:${u.color}"></div></div>
+      <div class="ct">${mc} / ${tot} mastered</div></div><div class="badge">${done?"✅":""}</div></div>`;});
+  $("solList").innerHTML=h;updateHUD();
+}
+function renderVault(){
+  const tot=UNITS.reduce((n,u)=>n+u.cards.length,0)+SOLUTIONS.reduce((n,u)=>n+u.cards.length,0);
+  $("vaultCount").textContent=`${mastered.size} of ${tot} cards collected. Tap a card to revisit it.`;
+  const group=(u,i,track,idfn)=>{let g=`<div class="vgroup"><h3><span class="dot" style="background:${u.color}"></span>${u.n}</h3><div class="vgrid">`;
+    u.cards.forEach((c,ci)=>{const col=mastered.has(idfn(i,ci));
+      g+=`<div class="vcard ${col?"collected":""}" ${col?`onclick="viewCard('${track}',${i},${ci})"`:""}><div class="vt">${col?c.t:"🔒 Locked"}</div><div class="vlock">${col?"Collected ✓":"Master to unlock"}</div></div>`;});
+    return g+`</div></div>`;};
+  let h="";
+  UNITS.forEach((u,i)=>h+=group(u,i,"U",cid));
+  h+=`<div class="vhead" style="font-size:17px;padding:18px 4px 0">Oracle <span>Solutions</span></div>`;
+  SOLUTIONS.forEach((u,i)=>h+=group(u,i,"S",scid));
   $("vaultBody").innerHTML=h;
 }
-function viewCard(i,ci){const c=UNITS[i].cards[ci],u=UNITS[i];const m=document.createElement("div");m.className="modal";
+function viewCard(track,i,ci){const deck=(track==="S"?SOLUTIONS:UNITS)[i],c=deck.cards[ci],u=deck;const m=document.createElement("div");m.className="modal";
   m.innerHTML=`<div class="face back" style="transform:none;position:relative"><button class="close">✕</button>
      <span class="cat" style="background:${u.color}">${u.n}</span><div class="term-sm">${c.t}</div><div class="rule"></div>
      <div class="blk"><h4 class="h1c">What it is</h4><p>${c.a}</p></div>
      <div class="blk"><h4 class="h2c">Why it matters</h4><p>${c.b}</p></div>
-     <div class="blk"><h4 class="h3c">${u.tl}</h4><p>${c.c}</p></div>${c.d?`<div class="blk"><h4 class="h4c">⚡ Utility lens</h4><p>${c.d}</p></div>`:""}</div>`;
+     <div class="blk"><h4 class="h3c">${u.tl}</h4><p>${c.c}</p></div>${c.d?`<div class="blk"><h4 class="h4c">${u.dl||"⚡ Utility lens"}</h4><p>${c.d}</p></div>`:""}</div>`;
   m.onclick=e=>{if(e.target===m||e.target.classList.contains("close"))m.remove();};document.body.appendChild(m);}
 
-let curUnit=0,lq=[];
-function openLesson(i){if(!unitUnlocked(i))return;curUnit=i;lq=UNITS[i].cards.map((_,c)=>c);
-  $("lessonName").textContent="Unit "+(i+1)+" · "+UNITS[i].n;
+let curUnit=0,lq=[],curDeck=null,curTrack="U",curIdx=0;
+function deckCardId(c){return curTrack==="U"?cid(curIdx,c):scid(curIdx,c);}
+function startDeck(track,i){curTrack=track;curIdx=i;curUnit=i;curDeck=(track==="U"?UNITS:SOLUTIONS)[i];lq=curDeck.cards.map((_,c)=>c);
+  $("lessonName").textContent=(track==="U"?"Unit "+(i+1)+" · ":"")+curDeck.n;
   show("lesson");$("lesson").classList.remove("hidden");$("topbar").classList.add("hidden");$("nav").classList.add("hidden");$("oraO").classList.add("hidden");
   say("start");renderStage();}
+function openLesson(i){if(!unitUnlocked(i))return;startDeck("U",i);}
+function openDeck(i){startDeck("S",i);}
 function lessonCount(){$("lessonCt").textContent=lq.length+" left";}
-function faceHTML(ci,behind){const c=UNITS[curUnit].cards[ci],u=UNITS[curUnit];
+function faceHTML(ci,behind){const c=curDeck.cards[ci],u=curDeck;
   return `<div class="card${behind?" behind":""}" data-ci="${ci}"><div class="cardinner">
     <div class="face front"><span class="cat" style="background:${u.color}">${u.n}</span><div class="term">${c.t}</div><div class="rule"></div><div class="prompt">${c.p}</div>
       <div class="tapper">Tap to <b>flip</b> · swipe to answer</div><div class="stamp yes">GOT IT</div><div class="stamp no">REVIEW</div></div>
     <div class="face back"><span class="cat" style="background:${u.color}">${u.n}</span><div class="term-sm">${c.t}</div><div class="rule"></div>
       <div class="blk"><h4 class="h1c">What it is</h4><p>${c.a}</p></div><div class="blk"><h4 class="h2c">Why it matters</h4><p>${c.b}</p></div>
-      <div class="blk"><h4 class="h3c">${u.tl}</h4><p>${c.c}</p></div>${c.d?`<div class="blk"><h4 class="h4c">⚡ Utility lens</h4><p>${c.d}</p></div>`:""}</div></div></div>`;}
+      <div class="blk"><h4 class="h3c">${u.tl}</h4><p>${c.c}</p></div>${c.d?`<div class="blk"><h4 class="h4c">${u.dl||"⚡ Utility lens"}</h4><p>${c.d}</p></div>`:""}</div></div></div>`;}
 function renderStage(){const stage=$("stage");if(lq.length===0){finishLesson();return;}
   let h="";if(lq.length>1)h+=faceHTML(lq[1],true);h+=faceHTML(lq[0],false);stage.innerHTML=h;lessonCount();attachSwipe(stage.querySelector(".card:not(.behind)"));}
 function attachSwipe(card){if(!card)return;const inner=card.querySelector(".cardinner"),yes=card.querySelector(".stamp.yes"),no=card.querySelector(".stamp.no");
@@ -412,13 +466,15 @@ function attachSwipe(card){if(!card)return;const inner=card.querySelector(".card
     if(dx>90)commit(card,1);else if(dx<-90)commit(card,-1);else{card.style.transform="";yes.style.opacity=0;no.style.opacity=0;}};
   card.addEventListener("pointerup",end);card.addEventListener("pointercancel",end);}
 function commit(card,dir){card.style.transform=`translate(${dir*600}px,${dir*40}px) rotate(${dir*30}deg)`;card.style.opacity="0";const ci=lq.shift();
-  if(dir>0){mastered.add(cid(curUnit,ci));addXp(10);streak++;if(streak%5===0){toast("🔥 "+streak+" streak!");SFX.streak();}else SFX.correct();say("got");sparkle();}
+  if(dir>0){mastered.add(deckCardId(ci));addXp(10);streak++;if(streak%5===0){toast("🔥 "+streak+" streak!");SFX.streak();}else SFX.correct();say("got");sparkle();}
   else{addXp(3);streak=0;lq.push(ci);say("review");SFX.wrong();}save();setTimeout(()=>{updateHUD();renderStage();},330);}
-function finishLesson(){const done=unitDone(curUnit);toast(done?"Unit "+(curUnit+1)+" complete! 🎉":"Nice work!");bigSparkle();if(done)SFX.win();setTimeout(()=>show("path"),700);}
+function finishLesson(){const done=curDeck.cards.every((_,c)=>mastered.has(deckCardId(c)));
+  toast(done?(curTrack==="U"?"Unit "+(curIdx+1)+" complete! 🎉":curDeck.n+" — deck complete! 🎉"):"Nice work!");
+  bigSparkle();if(done)SFX.win();setTimeout(()=>show(curTrack==="U"?"path":"solutions"),700);}
 $("bGot").onclick=()=>{const c=$("stage").querySelector(".card:not(.behind)");if(c)commit(c,1);};
 $("bReview").onclick=()=>{const c=$("stage").querySelector(".card:not(.behind)");if(c)commit(c,-1);};
 $("bFlip").onclick=()=>{const inner=$("stage").querySelector(".card:not(.behind) .cardinner");if(inner){inner.classList.toggle("flipped");SFX.flip();if(inner.classList.contains("flipped"))say("flip");}};
-$("lessonX").onclick=()=>show("path");
+$("lessonX").onclick=()=>show(curTrack==="U"?"path":"solutions");
 
 /* ===== CHALLENGE SUB-MODULE ===== */
 let chFocus="mixed",CHQ=[],chi=0,chScore=0;
@@ -514,10 +570,10 @@ function sparkle(){const f=$("finn").getBoundingClientRect();for(let i=0;i<5;i++
 function bigSparkle(){for(let i=0;i<18;i++)spawnSpark(window.innerWidth/2+(Math.random()-.5)*240,window.innerHeight*0.4+Math.random()*60);}
 function spawnSpark(x,y){const s=document.createElement("div");s.className="spark";s.textContent=pick(["✨","⭐","💫","🪙"]);s.style.left=x+"px";s.style.top=y+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),1100);}
 $("startBtn").onclick=()=>{audio();show("path");};
-$("navPath").onclick=()=>show("path");$("navVault").onclick=()=>show("vault");$("navChallenge").onclick=()=>show("challenge");
+$("navPath").onclick=()=>show("path");$("navSolutions").onclick=()=>show("solutions");$("navVault").onclick=()=>show("vault");$("navChallenge").onclick=()=>show("challenge");
 $("resetBtn").onclick=()=>{if(confirm("Reset all progress? This clears your XP, level, streak and Vault on this device."))resetProgress();};
 $("sndBtn").onclick=toggleSound;
-window.openLesson=openLesson;window.viewCard=viewCard;
+window.openLesson=openLesson;window.openDeck=openDeck;window.viewCard=viewCard;
 load();loadSound();updateHUD();
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
