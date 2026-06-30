@@ -87,7 +87,7 @@ async function fromEdgar(ticker) {
   const M = (v) => (v == null ? undefined : Math.round((v / 1e6) * 10) / 10);
 
   const rev = pickDuration(["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "RegulatedAndUnregulatedOperatingRevenue", "RevenueFromContractWithCustomerIncludingAssessedTax", "SalesRevenueNet"]);
-  const cogs = pickDuration(["CostOfGoodsAndServicesSold", "CostOfRevenue", "CostOfGoodsSold"]);
+  let cogs = pickDuration(["CostOfGoodsAndServicesSold", "CostOfRevenue", "CostOfGoodsSold"]);
   const opInc = pickDuration(["OperatingIncomeLoss"]);
   const ni = pickDuration(["NetIncomeLoss", "ProfitLoss"]);
   const cfo = pickDuration(["NetCashProvidedByUsedInOperatingActivities", "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"]);
@@ -98,9 +98,15 @@ async function fromEdgar(ticker) {
   const cash = pickInstant(["CashAndCashEquivalentsAtCarryingValue", "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"]);
   const ca = pickInstant(["AssetsCurrent"]);
   const cl = pickInstant(["LiabilitiesCurrent"]);
-  const ltd = pickInstant(["LongTermDebtNoncurrent", "LongTermDebt"]);
-  const cd = pickInstant(["LongTermDebtCurrent", "DebtCurrent"]);
-  const stb = pickInstant(["ShortTermBorrowings", "CommercialPaper"]);
+  const ltd = pickInstant(["LongTermDebtNoncurrent", "LongTermDebtAndCapitalLeaseObligations", "LongTermDebt"]);
+  const cd = pickInstant(["LongTermDebtCurrent", "LongTermDebtAndCapitalLeaseObligationsCurrent", "DebtCurrent"]);
+  const stb = pickInstant(["ShortTermBorrowings", "CommercialPaper", "OtherShortTermBorrowings"]);
+
+  // COGS tags are unreliable for utilities — a mis-tagged sliver (Southern's $231M) or a
+  // figure above revenue (Duke's $6.8B) would build a nonsense gross-margin question.
+  // Only keep COGS when it's a plausible share of revenue (20%–100%).
+  if (cogs && rev && (cogs.val <= 0 || cogs.val >= rev.val || cogs.val < rev.val * 0.2)) cogs = null;
+
   let debt;
   const dparts = [ltd, cd, stb].filter(Boolean).map((x) => x.val);
   if (dparts.length) debt = dparts.reduce((a, b) => a + b, 0);
