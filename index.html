@@ -238,7 +238,7 @@
 
   <div class="scroll hidden" id="path">
     <div class="pathhead"><svg class="finn"><use href="#finn-sym"/></svg>
-      <div><div class="ttl">Your <span>path</span></div><div class="sub">Each unit unlocks the next. Foundation first, then the sectors.</div></div></div>
+      <div><div class="ttl">Your <span>path</span></div><div class="sub">Jump into any unit. Foundation first is recommended — but it's your call.</div></div></div>
     <div id="unitList"></div>
     <div class="pathfoot"><button class="resetbtn" id="resetBtn">Reset all progress</button>
       <div class="pfnote">Your progress saves automatically on this device.</div></div>
@@ -443,7 +443,7 @@ const scid=(d,c)=>"S"+d+"-"+c;
 const deckMasteredCount=d=>SOLUTIONS[d].cards.reduce((n,_,c)=>n+(mastered.has(scid(d,c))?1:0),0);
 const unitMasteredCount=u=>UNITS[u].cards.reduce((n,_,c)=>n+(mastered.has(cid(u,c))?1:0),0);
 const unitDone=u=>unitMasteredCount(u)===UNITS[u].cards.length;
-const unitUnlocked=u=>u===0||unitDone(u-1);
+const unitUnlocked=u=>true;
 const SAY={start:["Tap to flip · swipe right when you've got it.","Knowledge dust loading… let's go!"],flip:["Here's the good stuff 👇","This is the part that wins meetings.","Read it once, own it forever."],got:["BOOM! Knowledge dust!","That's CFO-speak right there. 💪","You're dangerous now.","Filed under 'closer.'"],review:["No sweat — we'll loop back.","Repetition is how fluency sticks.","We'll catch it next pass."]};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 function say(k){$("bubble").textContent=pick(SAY[k]);popFinn();}
