@@ -28,6 +28,8 @@
   .xpwrap{flex:1;height:10px;background:rgba(255,255,255,.16);border-radius:6px;overflow:hidden}
   .xpbar{height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--gold));transition:width .5s}
   .streak{display:flex;align-items:center;gap:3px;font-weight:700;font-size:14px}
+  .sndbtn{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:15px;border-radius:6px;padding:5px 9px;cursor:pointer;line-height:1}
+  .sndbtn:active{transform:scale(.92)}
 
   .pathhead{padding:18px 4px 6px;display:flex;align-items:center;gap:12px}
   .pathhead .finn{width:54px;height:64px;animation:bob 2.6s ease-in-out infinite}
@@ -211,7 +213,7 @@
   </div>
 
   <div class="topbar hidden" id="topbar">
-    <div class="lvl">Lv <b id="lvlNum">1</b></div><div class="xpwrap"><div class="xpbar" id="xpbar"></div></div><div class="streak">🔥<span id="streakNum">0</span></div>
+    <div class="lvl">Lv <b id="lvlNum">1</b></div><div class="xpwrap"><div class="xpbar" id="xpbar"></div></div><div class="streak">🔥<span id="streakNum">0</span></div><button class="sndbtn" id="sndBtn" aria-label="Toggle sound">🔊</button>
   </div>
 
   <div class="scroll hidden" id="path">
@@ -356,7 +358,7 @@ function show(scr){
   if(scr==="challenge"){$("navChallenge").classList.add("on");chReset();}
 }
 function updateHUD(){$("lvlNum").textContent=level;$("streakNum").textContent=streak;$("xpbar").style.width=((xp%XP_LEVEL)/XP_LEVEL*100)+"%";}
-function addXp(n){const before=level;xp+=n;level=Math.floor(xp/XP_LEVEL)+1;if(level>before){toast("⭐ Level "+level+"!");bigSparkle();}updateHUD();save();}
+function addXp(n){const before=level;xp+=n;level=Math.floor(xp/XP_LEVEL)+1;if(level>before){toast("⭐ Level "+level+"!");bigSparkle();SFX.level();}updateHUD();save();}
 
 function renderPath(){
   let h="";
@@ -410,8 +412,8 @@ function attachSwipe(card){if(!card)return;const inner=card.querySelector(".card
     if(dx>90)commit(card,1);else if(dx<-90)commit(card,-1);else{card.style.transform="";yes.style.opacity=0;no.style.opacity=0;}};
   card.addEventListener("pointerup",end);card.addEventListener("pointercancel",end);}
 function commit(card,dir){card.style.transform=`translate(${dir*600}px,${dir*40}px) rotate(${dir*30}deg)`;card.style.opacity="0";const ci=lq.shift();
-  if(dir>0){mastered.add(cid(curUnit,ci));addXp(10);streak++;if(streak%5===0)toast("🔥 "+streak+" streak!");say("got");sparkle();}
-  else{addXp(3);streak=0;lq.push(ci);say("review");}save();setTimeout(()=>{updateHUD();renderStage();},330);}
+  if(dir>0){mastered.add(cid(curUnit,ci));addXp(10);streak++;if(streak%5===0){toast("🔥 "+streak+" streak!");SFX.streak();}else SFX.correct();say("got");sparkle();}
+  else{addXp(3);streak=0;lq.push(ci);say("review");SFX.wrong();}save();setTimeout(()=>{updateHUD();renderStage();},330);}
 function finishLesson(){toast(unitDone(curUnit)?"Unit "+(curUnit+1)+" complete! 🎉":"Nice work!");bigSparkle();setTimeout(()=>show("path"),700);}
 $("bGot").onclick=()=>{const c=$("stage").querySelector(".card:not(.behind)");if(c)commit(c,1);};
 $("bReview").onclick=()=>{const c=$("stage").querySelector(".card:not(.behind)");if(c)commit(c,-1);};
@@ -477,23 +479,41 @@ function chRenderQ(){const q=CHQ[chi];
   $("chNext").onclick=()=>{chi++;chi<CHQ.length?chRenderQ():chFinish();};}
 function chChoose(i){const q=CHQ[chi];
   document.querySelectorAll("#chOpts .chopt").forEach((b,idx)=>{b.onclick=null;if(idx===q.answer)b.classList.add("correct");else if(idx===i)b.classList.add("wrong");else b.classList.add("dim");});
-  if(i===q.answer){chScore++;addXp(8);streak++;if(streak%5===0)toast("🔥 "+streak+" streak!");chSpark();}else{streak=0;updateHUD();}save();
+  if(i===q.answer){chScore++;addXp(8);streak++;if(streak%5===0){toast("🔥 "+streak+" streak!");SFX.streak();}else SFX.correct();chSpark();}else{streak=0;updateHUD();SFX.wrong();}save();
   $("chEx").classList.add("show");$("chNext").classList.add("show");}
 function chFinish(){$("chQuiz").classList.add("hidden");$("chResult").classList.remove("hidden");$("chRScore").textContent=chScore+" / "+CHQ.length;
   const pct=chScore/CHQ.length;$("chRTitle").textContent=pct===1?"Flawless! 🏆":pct>=0.6?"Solid work! 💪":"Keep practicing!";
   $("chRMsg").textContent=pct===1?"You read that company's statements like a CFO. Go run the real meeting.":pct>=0.6?"You're applying the concepts to live numbers — exactly the goal.":"Revisit the unit cards, then run it again. Repetition builds fluency.";}
 function chSpark(){for(let i=0;i<6;i++)spawnSpark(window.innerWidth/2+(Math.random()-.5)*180,200+Math.random()*60);}
 
+/* ===== Sound effects (Web Audio API — synthesized, no files, works offline) ===== */
+const SND_KEY="finfluency_sound";let soundOn=true,actx=null;
+function loadSound(){try{soundOn=localStorage.getItem(SND_KEY)!=="0";}catch(e){}updateSndBtn();}
+function updateSndBtn(){const b=$("sndBtn");if(b)b.textContent=soundOn?"🔊":"🔇";}
+function toggleSound(){soundOn=!soundOn;try{localStorage.setItem(SND_KEY,soundOn?"1":"0");}catch(e){}updateSndBtn();if(soundOn)SFX.correct();}
+function audio(){if(actx===null){try{actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){actx=undefined;}}if(actx&&actx.state==="suspended")actx.resume();return actx;}
+function blip(freqs,dur,type,vol,gap){if(!soundOn)return;const ctx=audio();if(!ctx)return;dur=dur||0.12;vol=vol||0.18;gap=gap||0;const t0=ctx.currentTime;
+  freqs.forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type||"sine";o.frequency.value=f;const st=t0+i*(dur+gap);
+    g.gain.setValueAtTime(0.0001,st);g.gain.linearRampToValueAtTime(vol,st+0.012);g.gain.exponentialRampToValueAtTime(0.0001,st+dur);
+    o.connect(g).connect(ctx.destination);o.start(st);o.stop(st+dur+0.03);});}
+const SFX={
+  correct:()=>blip([659,880,1175],0.11,"triangle",0.2,0.012),  // rising "ta-da" chime
+  streak:()=>blip([784,988,1319,1568],0.085,"square",0.12,0.012), // sparkly run for milestones
+  level:()=>blip([523,659,784,1047],0.14,"triangle",0.22,0.02),   // C-E-G-C fanfare on level up
+  wrong:()=>blip([330,247],0.16,"sine",0.14,0.0),                 // gentle low "no worries" tone
+};
+
 /* fx + boot */
 function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600);}
 function sparkle(){const f=$("finn").getBoundingClientRect();for(let i=0;i<5;i++)spawnSpark(f.left+20+Math.random()*30,f.top+Math.random()*20);}
 function bigSparkle(){for(let i=0;i<18;i++)spawnSpark(window.innerWidth/2+(Math.random()-.5)*240,window.innerHeight*0.4+Math.random()*60);}
 function spawnSpark(x,y){const s=document.createElement("div");s.className="spark";s.textContent=pick(["✨","⭐","💫","🪙"]);s.style.left=x+"px";s.style.top=y+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),1100);}
-$("startBtn").onclick=()=>show("path");
+$("startBtn").onclick=()=>{audio();show("path");};
 $("navPath").onclick=()=>show("path");$("navVault").onclick=()=>show("vault");$("navChallenge").onclick=()=>show("challenge");
 $("resetBtn").onclick=()=>{if(confirm("Reset all progress? This clears your XP, level, streak and Vault on this device."))resetProgress();};
+$("sndBtn").onclick=toggleSound;
 window.openLesson=openLesson;window.viewCard=viewCard;
-load();updateHUD();
+load();loadSound();updateHUD();
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 </body>
