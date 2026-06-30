@@ -408,16 +408,16 @@ function attachSwipe(card){if(!card)return;const inner=card.querySelector(".card
   card.addEventListener("pointermove",e=>{if(!drag)return;dx=e.clientX-sx;dy=e.clientY-sy;if(Math.abs(dx)>6||Math.abs(dy)>6)moved=true;
     card.style.transform=`translate(${dx}px,${dy}px) rotate(${dx*0.05}deg)`;yes.style.opacity=dx>0?Math.min(dx/90,1):0;no.style.opacity=dx<0?Math.min(-dx/90,1):0;});
   const end=()=>{if(!drag)return;drag=false;card.style.transition="transform .35s,opacity .35s";
-    if(!moved){inner.classList.toggle("flipped");if(inner.classList.contains("flipped"))say("flip");card.style.transform="";return;}
+    if(!moved){inner.classList.toggle("flipped");SFX.flip();if(inner.classList.contains("flipped"))say("flip");card.style.transform="";return;}
     if(dx>90)commit(card,1);else if(dx<-90)commit(card,-1);else{card.style.transform="";yes.style.opacity=0;no.style.opacity=0;}};
   card.addEventListener("pointerup",end);card.addEventListener("pointercancel",end);}
 function commit(card,dir){card.style.transform=`translate(${dir*600}px,${dir*40}px) rotate(${dir*30}deg)`;card.style.opacity="0";const ci=lq.shift();
   if(dir>0){mastered.add(cid(curUnit,ci));addXp(10);streak++;if(streak%5===0){toast("🔥 "+streak+" streak!");SFX.streak();}else SFX.correct();say("got");sparkle();}
   else{addXp(3);streak=0;lq.push(ci);say("review");SFX.wrong();}save();setTimeout(()=>{updateHUD();renderStage();},330);}
-function finishLesson(){toast(unitDone(curUnit)?"Unit "+(curUnit+1)+" complete! 🎉":"Nice work!");bigSparkle();setTimeout(()=>show("path"),700);}
+function finishLesson(){const done=unitDone(curUnit);toast(done?"Unit "+(curUnit+1)+" complete! 🎉":"Nice work!");bigSparkle();if(done)SFX.win();setTimeout(()=>show("path"),700);}
 $("bGot").onclick=()=>{const c=$("stage").querySelector(".card:not(.behind)");if(c)commit(c,1);};
 $("bReview").onclick=()=>{const c=$("stage").querySelector(".card:not(.behind)");if(c)commit(c,-1);};
-$("bFlip").onclick=()=>{const inner=$("stage").querySelector(".card:not(.behind) .cardinner");if(inner){inner.classList.toggle("flipped");if(inner.classList.contains("flipped"))say("flip");}};
+$("bFlip").onclick=()=>{const inner=$("stage").querySelector(".card:not(.behind) .cardinner");if(inner){inner.classList.toggle("flipped");SFX.flip();if(inner.classList.contains("flipped"))say("flip");}};
 $("lessonX").onclick=()=>show("path");
 
 /* ===== CHALLENGE SUB-MODULE ===== */
@@ -483,7 +483,8 @@ function chChoose(i){const q=CHQ[chi];
   $("chEx").classList.add("show");$("chNext").classList.add("show");}
 function chFinish(){$("chQuiz").classList.add("hidden");$("chResult").classList.remove("hidden");$("chRScore").textContent=chScore+" / "+CHQ.length;
   const pct=chScore/CHQ.length;$("chRTitle").textContent=pct===1?"Flawless! 🏆":pct>=0.6?"Solid work! 💪":"Keep practicing!";
-  $("chRMsg").textContent=pct===1?"You read that company's statements like a CFO. Go run the real meeting.":pct>=0.6?"You're applying the concepts to live numbers — exactly the goal.":"Revisit the unit cards, then run it again. Repetition builds fluency.";}
+  $("chRMsg").textContent=pct===1?"You read that company's statements like a CFO. Go run the real meeting.":pct>=0.6?"You're applying the concepts to live numbers — exactly the goal.":"Revisit the unit cards, then run it again. Repetition builds fluency.";
+  (pct>=0.6?SFX.win:SFX.lose)();}
 function chSpark(){for(let i=0;i<6;i++)spawnSpark(window.innerWidth/2+(Math.random()-.5)*180,200+Math.random()*60);}
 
 /* ===== Sound effects (Web Audio API — synthesized, no files, works offline) ===== */
@@ -496,11 +497,15 @@ function blip(freqs,dur,type,vol,gap){if(!soundOn)return;const ctx=audio();if(!c
   freqs.forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type||"sine";o.frequency.value=f;const st=t0+i*(dur+gap);
     g.gain.setValueAtTime(0.0001,st);g.gain.linearRampToValueAtTime(vol,st+0.012);g.gain.exponentialRampToValueAtTime(0.0001,st+dur);
     o.connect(g).connect(ctx.destination);o.start(st);o.stop(st+dur+0.03);});}
+function buzz(p){if(!soundOn)return;try{navigator.vibrate&&navigator.vibrate(p);}catch(e){}}
 const SFX={
-  correct:()=>blip([659,880,1175],0.11,"triangle",0.2,0.012),  // rising "ta-da" chime
-  streak:()=>blip([784,988,1319,1568],0.085,"square",0.12,0.012), // sparkly run for milestones
-  level:()=>blip([523,659,784,1047],0.14,"triangle",0.22,0.02),   // C-E-G-C fanfare on level up
-  wrong:()=>blip([330,247],0.16,"sine",0.14,0.0),                 // gentle low "no worries" tone
+  correct:()=>{blip([659,880,1175],0.11,"triangle",0.2,0.012);buzz(18);},        // rising "ta-da" chime
+  streak:()=>{blip([784,988,1319,1568],0.085,"square",0.12,0.012);buzz([12,30,12]);}, // sparkly run for milestones
+  level:()=>{blip([523,659,784,1047],0.14,"triangle",0.22,0.02);buzz([18,40,18,40]);}, // C-E-G-C fanfare on level up
+  wrong:()=>{blip([330,247],0.16,"sine",0.14,0.0);buzz(35);},                    // gentle low "no worries" tone
+  flip:()=>blip([520],0.045,"sine",0.06),                                         // subtle tick on card flip (no buzz)
+  win:()=>{blip([523,659,784,1047,1319],0.13,"triangle",0.2,0.015);buzz([20,40,20,40]);}, // quiz passed jingle
+  lose:()=>{blip([392,349,294],0.18,"sine",0.14,0.02);buzz(40);},                // gentle "try again" jingle
 };
 
 /* fx + boot */
