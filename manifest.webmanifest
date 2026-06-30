@@ -1,0 +1,16 @@
+{
+  "name": "FinFluency",
+  "short_name": "FinFluency",
+  "description": "Finance fluency for sellers — swipe to learn, then prove it on a real company.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3EEE6",
+  "theme_color": "#1D1F2B",
+  "icons": [
+    {"src":"icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ]
+}

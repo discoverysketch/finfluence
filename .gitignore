@@ -1,0 +1,6 @@
+# Tooling / local-only
+.claude/
+.vercel/
+node_modules/
+.DS_Store
+*.log

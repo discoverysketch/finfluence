@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>FinFluency · Oracle Redwood</title>
+<link href="https://fonts.googleapis.com/css2?family=Oracle+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<meta name="theme-color" content="#1D1F2B"/>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="FinFluency"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<style>
+  :root{--cream:#F3EEE6;--cream2:#EBE4D8;--surface:#FFF;--ink:#1D1F2B;--ink2:#454A57;--muted:#8A7E6E;--border:#E0D8CB;
+    --red:#C74634;--gold:#C8902E;--charcoal:#1D1F2B;--blue:#0572CE;--teal:#006B72;--green:#1B7A47;--purple:#6A3E8E;--amber:#9A6700;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Oracle Sans','Source Sans 3','Segoe UI',system-ui,sans-serif;color:var(--ink);background:var(--cream);overflow:hidden;user-select:none}
+  .app{position:relative;max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--cream)}
+  .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 92px}
+  .hidden{display:none!important}
+
+  .topbar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--charcoal);color:#fff}
+  .lvl{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:6px;padding:5px 11px;font-weight:600;font-size:13px}
+  .lvl b{color:var(--gold)}
+  .xpwrap{flex:1;height:10px;background:rgba(255,255,255,.16);border-radius:6px;overflow:hidden}
+  .xpbar{height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--gold));transition:width .5s}
+  .streak{display:flex;align-items:center;gap:3px;font-weight:700;font-size:14px}
+
+  .pathhead{padding:18px 4px 6px;display:flex;align-items:center;gap:12px}
+  .pathhead .finn{width:54px;height:64px;animation:bob 2.6s ease-in-out infinite}
+  .pathhead .ttl{font-size:22px;font-weight:700}.pathhead .ttl span{color:var(--red)}
+  .pathhead .sub{font-size:12px;color:var(--ink2);margin-top:2px}
+  .unit{display:flex;gap:13px;align-items:center;background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--teal);
+    border-radius:12px;padding:14px;margin:12px 0;cursor:pointer;box-shadow:0 2px 8px rgba(60,40,20,.06);transition:transform .12s}
+  .unit:active{transform:scale(.985)}
+  .unit.locked{opacity:.55;cursor:default}
+  .unit .ic{font-size:27px;width:42px;text-align:center}
+  .unit .meta{flex:1;min-width:0}
+  .unit .unitno{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.2px}
+  .unit .nm{font-weight:700;font-size:15.5px;line-height:1.18;margin-top:1px}
+  .unit .pg{height:7px;background:var(--cream2);border-radius:6px;margin-top:8px;overflow:hidden}
+  .unit .pgf{height:100%;width:0;border-radius:6px;transition:width .4s}
+  .unit .ct{font-size:11.5px;color:var(--ink2);margin-top:5px;font-weight:500}
+  .unit .badge{font-size:20px}
+
+  .nav{position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;display:flex;background:var(--charcoal);border-top:1px solid rgba(255,255,255,.08)}
+  .nav button{flex:1;background:none;border:none;color:#B9B2A6;font-weight:700;font-size:11.5px;padding:11px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+  .nav button.on{color:var(--gold)}
+  .nav .ni{font-size:19px}
+
+  .vhead{font-size:22px;font-weight:700;padding:18px 4px 2px}.vhead span{color:var(--red)}
+  .vsub{font-size:12.5px;color:var(--ink2);padding:0 4px 8px}
+  .vgroup{margin:16px 0 4px}
+  .vgroup h3{font-size:13.5px;font-weight:700;margin:0 0 9px;display:flex;align-items:center;gap:8px}
+  .vgroup .dot{width:11px;height:11px;border-radius:3px}
+  .vgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .vcard{background:#EFE8DC;border:1px solid var(--border);border-radius:11px;padding:12px;min-height:62px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
+  .vcard.collected{background:var(--surface);box-shadow:0 2px 6px rgba(60,40,20,.07)}
+  .vcard .vt{font-weight:700;font-size:13.5px;line-height:1.18;color:var(--muted)}
+  .vcard.collected .vt{color:var(--ink)}
+  .vcard .vlock{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
+  .vcard.collected .vlock{color:var(--green)}
+
+  /* lesson */
+  .lessonbar{display:flex;align-items:center;gap:10px;padding:12px 16px 4px}
+  .lessonbar .x{background:none;border:none;color:var(--ink2);font-size:22px;font-weight:700;cursor:pointer;line-height:1}
+  .lessonbar .lname{font-weight:700;font-size:14px;flex:1}
+  .lessonbar .lct{font-size:12px;color:var(--ink2);font-weight:600}
+  .coach{display:flex;align-items:flex-end;gap:9px;margin:8px 16px;min-height:70px}
+  .finn{flex:0 0 auto;transform-origin:bottom center}
+  .coach .finn{width:56px;height:68px;animation:bob 2.6s ease-in-out infinite}
+  .finn.pop{animation:pop .5s ease}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.18) rotate(-4deg)}60%{transform:scale(.96)}100%{transform:scale(1)}}
+  .wing{transform-origin:60px 70px;animation:flut .5s ease-in-out infinite alternate}
+  @keyframes flut{from{transform:rotate(-6deg)}to{transform:rotate(8deg)}}
+  .bubble{position:relative;background:var(--charcoal);color:#fff;border-radius:13px;padding:10px 13px;font-size:13.5px;line-height:1.4;font-weight:500;box-shadow:0 6px 16px rgba(40,30,15,.2);flex:1}
+  .bubble:after{content:"";position:absolute;left:-7px;bottom:14px;border:7px solid transparent;border-right-color:var(--charcoal)}
+  .stage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;margin:4px 16px 0}
+  .card{position:absolute;width:100%;max-width:430px;height:100%;max-height:450px;border-radius:18px;perspective:1500px;cursor:grab;touch-action:none}
+  .card.behind{transform:scale(.94) translateY(14px);filter:brightness(.97);pointer-events:none}
+  .cardinner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+  .cardinner.flipped{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;background:var(--surface);color:var(--ink);box-shadow:0 14px 34px rgba(40,30,15,.22);border:1px solid var(--border);padding:24px;display:flex;flex-direction:column;overflow:hidden}
+  .back{transform:rotateY(180deg);overflow-y:auto}
+  .cat{display:inline-block;align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#fff;padding:5px 11px;border-radius:5px}
+  .term{font-size:29px;font-weight:700;line-height:1.12;margin:auto 0 0}
+  .rule{width:48px;height:3px;background:var(--gold);border-radius:2px;margin:10px 0 12px}
+  .prompt{font-size:16px;color:var(--ink2);line-height:1.5;font-weight:500}
+  .tapper{margin-top:auto;text-align:center;font-size:12px;color:var(--muted);font-weight:700;padding-top:14px}
+  .tapper b{color:var(--red)}
+  .back .term-sm{font-size:19px;font-weight:700;margin:8px 0 0}
+  .back .rule{margin:9px 0 13px}
+  .back .blk{margin-bottom:13px}
+  .back h4{margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .back p{margin:0;font-size:14.5px;line-height:1.46;color:var(--ink)}
+  .h1c{color:var(--blue)}.h2c{color:var(--purple)}.h3c{color:var(--red)}.h4c{color:var(--teal)}
+  .stamp{position:absolute;top:22px;font-size:18px;font-weight:800;letter-spacing:1px;padding:6px 13px;border-radius:8px;border:3px solid;opacity:0}
+  .stamp.yes{right:18px;color:var(--green);border-color:var(--green);transform:rotate(-12deg)}
+  .stamp.no{left:18px;color:var(--amber);border-color:var(--amber);transform:rotate(12deg)}
+  .actions{display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 0 10px}
+  .btn{border:none;border-radius:50%;width:56px;height:56px;font-size:23px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(40,30,15,.22);transition:transform .12s}
+  .btn:active{transform:scale(.9)}
+  .btn.review{background:var(--surface);color:var(--amber);border:2px solid var(--amber)}
+  .btn.flip{background:var(--red);color:#fff;width:62px;height:62px;font-size:19px}
+  .btn.got{background:var(--green);color:#fff}
+
+  /* challenge */
+  .chlead{display:flex;gap:12px;align-items:flex-start;margin:18px 0 16px}
+  .chlead .finn{width:56px;height:68px;flex:0 0 auto;animation:bob 2.6s ease-in-out infinite}
+  .fl{font-size:12px;color:var(--ink2);font-weight:600;display:block;margin-bottom:5px}
+  .tickrow{display:flex;gap:9px}
+  #chTicker{flex:1;border:1px solid var(--border);border-radius:8px;padding:13px;font-size:18px;font-weight:700;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:1px;color:var(--ink);background:#fff}
+  .chgo{background:var(--red);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;padding:0 20px;cursor:pointer}
+  .chgo:disabled{opacity:.6}
+  .chpicks{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  .chpicks span{font-size:11px;color:var(--muted)}
+  .chpick{border:1px solid var(--border);background:#fff;color:var(--red);font-weight:700;font-size:11px;font-family:ui-monospace,Menlo,monospace;border-radius:18px;padding:4px 11px;cursor:pointer}
+  .chfocus{margin-top:18px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}
+  .chip{border:1px solid var(--border);background:#fff;color:var(--ink2);font-size:12.5px;font-weight:600;border-radius:20px;padding:7px 13px;cursor:pointer}
+  .chip.on{background:var(--charcoal);color:#fff;border-color:var(--charcoal)}
+  .chnote{margin-top:16px;border-radius:8px;padding:11px 13px;font-size:12px;line-height:1.45;display:none}
+  .chnote.warn{background:#FBF2DD;border:1px solid #E6CF94;color:#7A5B12;display:block}
+  .chnote.err{background:#F9E7E3;border:1px solid #E3B3A9;color:#9B2C1A;display:block}
+  .chsum{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin:16px 0;box-shadow:0 2px 8px rgba(60,40,20,.06)}
+  .chsum h2{font-size:18px;font-weight:700}
+  .chsum .per{font-size:12px;color:var(--muted);font-weight:600}
+  .chgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-top:6px}
+  .chli{display:flex;justify-content:space-between;border-bottom:1px solid #F0EAE0;padding:4px 0}
+  .chli .k{font-size:12.5px;color:var(--ink2)}
+  .chli .v{font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace}
+  .chq{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(60,40,20,.06)}
+  .chmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .chtag{font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#fff;padding:4px 10px;border-radius:5px;background:var(--blue)}
+  .chprog{font-size:12px;color:var(--muted);font-weight:600}
+  .chqq{font-size:16.5px;font-weight:700;line-height:1.35;margin:6px 0 14px}
+  .chopt{display:block;width:100%;text-align:left;background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:13px 14px;margin-bottom:9px;font-size:14.5px;font-weight:600;color:var(--ink);cursor:pointer;font-family:inherit;transition:.12s}
+  .chopt:active{transform:scale(.99)}
+  .chopt.correct{background:#E8F5EE;border-color:var(--green);color:#135a34}
+  .chopt.wrong{background:#F9E7E3;border-color:var(--red);color:#9B2C1A}
+  .chopt.dim{opacity:.55}
+  .chexp{margin-top:6px;font-size:13.5px;line-height:1.5;background:#F7F2E9;border-left:3px solid var(--gold);border-radius:6px;padding:11px 13px;display:none}
+  .chexp.show{display:block}
+  .chnext{margin-top:14px;background:var(--red);color:#fff;border:none;border-radius:8px;padding:13px;width:100%;font-size:15px;font-weight:700;cursor:pointer;display:none}
+  .chnext.show{display:block}
+  .chresult{text-align:center;padding:24px 0}
+  .chresult .big-finn{width:104px;height:124px;animation:bob 2.6s ease-in-out infinite}
+  .chresult h2{font-size:25px;font-weight:700;margin:6px 0 0}
+  .chresult .sc{font-size:38px;font-weight:800;color:var(--red);margin:6px 0}
+  .chresult p{font-size:14px;color:var(--ink2);line-height:1.5;max-width:320px;margin:0 auto 18px}
+  .chagain{background:var(--charcoal);color:#fff;border:none;border-radius:8px;padding:13px 26px;font-size:15px;font-weight:700;cursor:pointer}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:5px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .chfoot{font-size:11px;color:var(--muted);text-align:center;margin-top:18px;line-height:1.5}
+
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px;z-index:30;background:var(--cream)}
+  .big-finn{width:120px;height:142px;margin-bottom:8px;animation:bob 2.6s ease-in-out infinite}
+  .screen h1{font-size:31px;margin:6px 0 0;font-weight:700}.screen h1 span{color:var(--red)}
+  .screen .hr{width:60px;height:3px;background:var(--gold);border-radius:2px;margin:12px 0 16px}
+  .screen .tag{color:var(--ink2);font-size:14.5px;margin-bottom:22px;line-height:1.5;max-width:340px}
+  .start-btn{background:var(--red);color:#fff;border:none;padding:15px 32px;border-radius:8px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(199,70,52,.4)}
+  .modal{position:fixed;inset:0;background:rgba(29,31,43,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:60}
+  .modal .face{position:relative;max-width:390px;width:100%;max-height:82%;overflow:auto}
+  .modal .close{position:absolute;top:12px;right:16px;font-size:22px;color:var(--muted);background:none;border:none;font-weight:700;cursor:pointer}
+  .spark{position:fixed;font-size:20px;pointer-events:none;animation:rise 1.1s ease-out forwards;z-index:70}
+  @keyframes rise{0%{opacity:1;transform:translateY(0) scale(.6)}100%{opacity:0;transform:translateY(-120px) scale(1.3)}}
+  .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--charcoal);color:#fff;font-weight:700;padding:10px 18px;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.3);z-index:80;opacity:0;transition:opacity .3s,transform .3s;font-size:14px;text-align:center;max-width:90%}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(6px)}
+  .oracle-o{position:fixed;bottom:60px;right:14px;font-weight:800;color:var(--red);font-size:13px;letter-spacing:.5px;opacity:.6;pointer-events:none;z-index:5}
+  .pathfoot{margin:22px 4px 8px;text-align:center}
+  .resetbtn{background:none;border:1px solid var(--border);color:var(--muted);font-weight:600;font-size:12px;border-radius:8px;padding:9px 16px;cursor:pointer}
+  .resetbtn:active{transform:scale(.97)}
+  .pfnote{font-size:11px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<svg style="display:none"><symbol id="finn-sym" viewBox="0 0 120 140">
+  <line x1="84" y1="126" x2="99" y2="58" stroke="#8A5A2A" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="99" cy="54" r="8" fill="#C8902E" opacity=".35"/>
+  <text x="99" y="59" font-size="15" fill="#C8902E" text-anchor="middle">★</text>
+  <path d="M45 78 L75 78 L86 122 L34 122 Z" fill="#C74634"/>
+  <path d="M45 78 L60 92 L75 78 Z" fill="#A63A2B"/>
+  <text x="46" y="106" font-size="12" fill="#C8902E" font-weight="bold">?</text>
+  <text x="64" y="112" font-size="12" fill="#F3EEE6" font-weight="bold">?</text>
+  <text x="54" y="119" font-size="11" fill="#1D1F2B" font-weight="bold">?</text>
+  <text x="69" y="99" font-size="11" fill="#C8902E">★</text>
+  <circle cx="60" cy="52" r="22" fill="#FAD9B8"/>
+  <path d="M48 58 Q49 81 60 85 Q71 81 72 58 Q66 70 60 70 Q54 70 48 58 Z" fill="#ECE6DB" stroke="#D8CFBE" stroke-width="1"/>
+  <circle cx="51" cy="49" r="8" fill="#fff" stroke="#1D1F2B" stroke-width="2.5"/><circle cx="69" cy="49" r="8" fill="#fff" stroke="#1D1F2B" stroke-width="2.5"/>
+  <line x1="59" y1="49" x2="61" y2="49" stroke="#1D1F2B" stroke-width="2.5"/>
+  <circle cx="51" cy="49" r="3" fill="#1D1F2B"/><circle cx="69" cy="49" r="3" fill="#1D1F2B"/>
+  <circle cx="52.3" cy="47.7" r="1" fill="#fff"/><circle cx="70.3" cy="47.7" r="1" fill="#fff"/>
+  <path d="M53 59 q7 5 14 0" stroke="#B5654A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="60" cy="33" rx="30" ry="6" fill="#A63A2B"/>
+  <polygon points="41,33 64,3 83,33" fill="#C74634"/>
+  <polygon points="44,33 80,33 79,26 45,26" fill="#C8902E"/>
+  <text x="57" y="20" font-size="12" fill="#C8902E">★</text>
+  <text x="58" y="33" font-size="9" fill="#1D1F2B" font-weight="bold">?</text>
+</symbol></svg>
+
+<div class="app">
+  <div class="screen" id="start">
+    <svg class="big-finn"><use href="#finn-sym"/></svg>
+    <h1>Fin<span>Fluency</span></h1><div class="hr"></div>
+    <div class="tag">I'm <b>Finn</b>, your finance-whiz wizard. Build your fluency one statement at a time, fill your Vault, then test it on a real company in the <b>Challenge</b>.</div>
+    <button class="start-btn" id="startBtn">Start the path</button>
+  </div>
+
+  <div class="topbar hidden" id="topbar">
+    <div class="lvl">Lv <b id="lvlNum">1</b></div><div class="xpwrap"><div class="xpbar" id="xpbar"></div></div><div class="streak">🔥<span id="streakNum">0</span></div>
+  </div>
+
+  <div class="scroll hidden" id="path">
+    <div class="pathhead"><svg class="finn"><use href="#finn-sym"/></svg>
+      <div><div class="ttl">Your <span>path</span></div><div class="sub">Each unit unlocks the next. Foundation first, then the sectors.</div></div></div>
+    <div id="unitList"></div>
+    <div class="pathfoot"><button class="resetbtn" id="resetBtn">Reset all progress</button>
+      <div class="pfnote">Your progress saves automatically on this device.</div></div>
+  </div>
+
+  <div class="scroll hidden" id="vault">
+    <div class="vhead">The <span>Vault</span></div><div class="vsub" id="vaultCount"></div><div id="vaultBody"></div>
+  </div>
+
+  <!-- CHALLENGE SUB-MODULE -->
+  <div class="scroll hidden" id="challenge">
+    <div class="vhead">Company <span>Challenge</span></div>
+    <div id="chEntry">
+      <div class="chlead"><svg class="finn"><use href="#finn-sym"/></svg>
+        <div class="bubble">Pick a company and a focus. I'll pull its latest quarter and turn the numbers into a puzzle — prove what you learned and earn XP!</div></div>
+      <label class="fl">Ticker</label>
+      <div class="tickrow"><input id="chTicker" placeholder="NEE" maxlength="6"/><button class="chgo" id="chGo">Analyze</button></div>
+      <div class="chpicks"><span>Your book:</span>
+        <button class="chpick" data-t="NEE">NEE</button><button class="chpick" data-t="EXC">EXC</button>
+        <button class="chpick" data-t="SO">SO</button><button class="chpick" data-t="DUK">DUK</button>
+        <button class="chpick" data-t="D">D</button><button class="chpick" data-t="AEP">AEP</button>
+        <button class="chpick" data-t="VST">VST</button><button class="chpick" data-t="AES">AES</button>
+        <button class="chpick" data-t="CMS">CMS</button><button class="chpick" data-t="OGE">OGE</button>
+        <button class="chpick" data-t="UTL">UTL</button><button class="chpick" data-t="BRK.B">BRK.B</button></div>
+      <div class="chfocus"><label class="fl">Focus the puzzle on…</label>
+        <div class="chips" id="chFocusChips">
+          <button class="chip on" data-f="mixed">Mixed</button><button class="chip" data-f="prof">Profitability</button>
+          <button class="chip" data-f="liq">Liquidity &amp; Leverage</button><button class="chip" data-f="ret">Returns</button>
+          <button class="chip" data-f="cash">Cash &amp; Capital</button><button class="chip" data-f="found">Foundations</button></div></div>
+      <div class="chnote" id="chNote"></div>
+      <div class="chfoot">Pulled figures are an AI draft from public sources — verify against the 10-Q. Educational tool · not investment advice.</div>
+    </div>
+    <div id="chQuiz" class="hidden"><div class="chsum" id="chSummary"></div><div class="chq" id="chQcard"></div></div>
+    <div id="chResult" class="hidden"><div class="chresult"><svg class="big-finn"><use href="#finn-sym"/></svg>
+      <h2 id="chRTitle">Nice work!</h2><div class="sc" id="chRScore">0 / 0</div><p id="chRMsg"></p>
+      <button class="chagain" id="chAgain">Try another company</button></div></div>
+  </div>
+
+  <div class="hidden" id="lesson" style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <div class="lessonbar"><button class="x" id="lessonX">✕</button><div class="lname" id="lessonName">Unit</div><div class="lct" id="lessonCt">0 left</div></div>
+    <div class="coach"><svg class="finn" id="finn"><use href="#finn-sym"/></svg><div class="bubble" id="bubble">Tap to flip · swipe right when you've got it.</div></div>
+    <div class="stage" id="stage"></div>
+    <div class="actions"><button class="btn review" id="bReview">↩</button><button class="btn flip" id="bFlip">⟳</button><button class="btn got" id="bGot">✓</button></div>
+  </div>
+
+  <div class="nav hidden" id="nav">
+    <button class="on" id="navPath"><span class="ni">🗺️</span>Path</button>
+    <button id="navVault"><span class="ni">🗝️</span>Vault</button>
+    <button id="navChallenge"><span class="ni">🎯</span>Challenge</button>
+  </div>
+  <div class="oracle-o hidden" id="oraO">ORACLE</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const UNITS=[
+ {n:"The Income Statement",ic:"📈",color:"#0572CE",tl:"How it links",cards:[
+  {t:"The Income Statement",p:"Statement #1. What does it actually show?",a:"A company's financial performance over a period — a quarter or a year.",b:"It answers one question: did the business make a profit?",c:"Its bottom line, net income, becomes the starting point for both other statements.",d:"For a utility, 'performance' is shaped by the regulator — revenue is largely set by approved rates, not the open market."},
+  {t:"Revenue",p:"The top line. When is it recorded?",a:"The value of goods or services sold, recognized when earned.",b:"It's the starting point — everything below is subtracted from it.",c:"Booked when earned, not when cash arrives. That gap is why a cash flow statement exists.",d:"Utility revenue is regulated rates × volumes plus pass-through cost recovery — not a price the company sets freely."},
+  {t:"Gross Profit",p:"Revenue minus what?",a:"Revenue minus the cost of goods or services sold (COGS).",b:"Shows how profitable the core product is before overhead.",c:"Gross margin feeds the profitability ratios in the Metrics unit.",d:"Utilities don't really report COGS or gross profit; their analog is margin after fuel and purchased power (pass-throughs)."},
+  {t:"Operating Income (EBIT)",p:"Strip out financing and tax. What's left?",a:"Gross profit minus operating expenses like SG&A and R&D.",b:"Isolates how well the core business runs, regardless of financing or tax.",c:"EBIT drives interest coverage and launches free cash flow.",d:"For a regulated utility this is effectively what the allowed return on rate base produces — regulator-shaped, not market-shaped."},
+  {t:"Net Income",p:"The bottom line. Where does it go next?",a:"What remains after interest, taxes, and all expenses — the profit.",b:"The single most-quoted earnings number.",c:"It flows two places: retained earnings on the balance sheet, and the top of the cash flow statement. The first link.",d:"A utility's net income is judged against the allowed return on equity set in its last rate case."},
+  {t:"Accrual vs. Cash",p:"Why can a profitable company go broke?",a:"Accrual accounting records revenue/expense when earned, not when cash moves.",b:"Profit is not the same as cash in the bank.",c:"This mismatch is the entire reason for the cash flow statement — Unit 3.",d:"Regulatory accounting adds a timing layer — costs can be deferred as regulatory assets and recovered in later periods."}]},
+ {n:"The Balance Sheet",ic:"⚖️",color:"#006B72",tl:"How it links",cards:[
+  {t:"The Balance Sheet",p:"Statement #2. A period or a moment?",a:"A snapshot of what a company owns and owes at a single point in time.",b:"It shows financial position and soundness, not performance.",c:"The income statement covers a span; this is one frozen instant — usually period-end.",d:"A utility's balance sheet is dominated by one thing: net utility plant — the rate base it earns a return on."},
+  {t:"The Accounting Equation",p:"The rule that must always hold?",a:"Assets = Liabilities + Equity. Always, by construction.",b:"Every transaction keeps it in balance — the heart of accounting.",c:"This is the 'balance sheet balances' tie. If it fails, the books are wrong.",d:"Utilities carry items others don't — regulatory assets and liabilities — that exist only because a regulator allows them."},
+  {t:"Assets",p:"What the company owns. Two flavors?",a:"Resources owned: current (cash, receivables, inventory) and long-term (PP&E, intangibles).",b:"Assets are the engine that generates revenue.",c:"Net PP&E here is what depreciation on the income statement slowly wears down.",d:"Net utility plant (PP&E) is the asset that matters most — it IS the rate base that drives utility earnings."},
+  {t:"Liabilities",p:"What the company owes. To whom?",a:"Obligations: payables, accrued costs, short- and long-term debt.",b:"They fund assets and reveal financing and risk.",c:"Debt here drives the interest expense back on the income statement.",d:"Utilities run heavy long-term debt by design; regulators build a cost of debt into approved rates."},
+  {t:"Equity & Retained Earnings",p:"The owners' slice — and the first big link?",a:"Equity = assets minus liabilities. Retained earnings = cumulative profit kept in the business.",b:"The shareholders' claim and a record of reinvested profit.",c:"Each period's net income flows straight into retained earnings. Link #1, made concrete.",d:"Equity is half the capital structure regulators reason about — they set an allowed return on this equity base."},
+  {t:"Working Capital",p:"Current assets minus current liabilities. Why care?",a:"The short-term cash cushion to run day-to-day operations.",b:"Too little strains liquidity; too much is idle cash.",c:"Changes in working capital reappear on the cash flow statement — consuming or releasing cash.",d:"Utilities often run thin working capital and tight current ratios; short-term debt bridges the constant capex spend."}]},
+ {n:"The Cash Flow Statement",ic:"💵",color:"#1B7A47",tl:"How it links",cards:[
+  {t:"The Cash Flow Statement",p:"Statement #3. What gap does it close?",a:"It tracks actual cash in and out over a period, in three buckets.",b:"It reconciles accrual profit to real cash — the test of solvency.",c:"It exists because net income isn't cash. It proves where the cash went.",d:"For utilities the cash story is stark: strong operating cash, enormous capex, and a financing gap to fill."},
+  {t:"Cash from Operations",p:"Where does it start?",a:"Cash from the core business, starting from net income and adjusting for non-cash and working-capital items.",b:"Growing operating cash flow is the strongest sign of quality.",c:"It literally begins with net income from the income statement — link #2.",d:"Operating cash flow is large for utilities largely because depreciation on a giant plant base is huge."},
+  {t:"Adding Back Depreciation",p:"A non-cash expense. Why add it back?",a:"Depreciation cut net income but moved no cash, so it's added back.",b:"Explains why cash flow often exceeds reported profit.",c:"Depreciation touches all three: expense on the IS, accumulated on the BS, added back here.",d:"For utilities this add-back is enormous — the plant base is so large it dwarfs most other line items."},
+  {t:"Working Capital Changes",p:"Why does rising inventory hurt cash?",a:"More receivables or inventory consume cash; more payables release it.",b:"A 'profitable' quarter can still burn cash if working capital balloons.",c:"These swings come straight from the balance sheet's current accounts.",d:"Less of a swing factor for utilities; the dominant cash story is relentless capex, not working capital."},
+  {t:"Investing & Financing",p:"The other two buckets?",a:"Investing = capex and acquisitions. Financing = debt, equity, dividends.",b:"They show how the company invests and funds itself.",c:"Capex builds the PP&E on the balance sheet; debt and dividends move liabilities and equity.",d:"This is the utility's whole identity — massive investing outflows (capex) funded by financing (debt + equity)."},
+  {t:"Ending Cash",p:"The number that closes the loop?",a:"Beginning cash plus the net change across all three buckets.",b:"The final cash position for the period.",c:"It must equal the cash line on the balance sheet. The last tie — loop closed.",d:"Utilities hold very little cash; capital flows almost straight from financing into plant. (Unitil ended a year near $6M.)"}]},
+ {n:"How the Three Connect",ic:"🔗",color:"#C74634",tl:"The big picture",cards:[
+  {t:"Net Income → Retained Earnings",p:"Income statement to balance sheet?",a:"Each period's net income increases retained earnings within equity.",b:"It's how performance accumulates into position over time.",c:"Profit doesn't vanish at year-end — it's banked into owners' equity.",d:"Retained earnings help fund rate-base growth, reducing how much new equity a utility must issue."},
+  {t:"Net Income → Cash Flow",p:"Income statement to cash flow?",a:"Net income is the first line of the operating section.",b:"Cash flow is built by reconciling that profit to actual cash.",c:"Same number, two destinations — equity and the top of cash flow.",d:"True for utilities too — though their cash flow is defined more by the depreciation add-back than the net income line."},
+  {t:"Ending Cash → Balance Sheet",p:"Cash flow back to balance sheet?",a:"Ending cash on the cash flow statement equals the cash asset on the balance sheet.",b:"It proves the statements are internally consistent.",c:"If these don't match, something is mis-stated. A hard tie.",d:"Holds exactly for utilities — though their cash line is tiny next to the plant base."},
+  {t:"The Three Integrity Ties",p:"How do you sanity-check any company's books?",a:"Balance sheet balances; ending cash ties; net income ties to the cash flow's first line.",b:"If all three hold, the statements are consistent — your first data-quality test.",c:"These are exactly the green/red checks in the Three-Statement Reader tool.",d:"These are how you sanity-check a utility filing before quoting its rate base, ROE, or capex to a client."},
+  {t:"Profitable, Sound, Solvent",p:"Why do you need all three statements?",a:"Income statement = profitable; balance sheet = sound; cash flow = solvent.",b:"Each covers a blind spot of the others — one alone misleads.",c:"A company can look profitable yet be insolvent. Only all three tell the truth.",d:"Utilities are reliably profitable yet rarely self-funding — solvency leans on continuous access to capital markets."}]},
+ {n:"Reading the Business",ic:"🧮",color:"#0572CE",tl:"Why a seller cares",cards:[
+  {t:"Margins",p:"Gross, operating, net — the ladder?",a:"Profit at each level divided by revenue.",b:"Shows where money is made or lost down the statement.",c:"Margin compression is quantifiable pain — and a reason to modernize for real-time visibility.",d:"Use margin after pass-through costs for utilities — raw revenue includes fuel and purchased power they don't mark up."},
+  {t:"Liquidity Ratios",p:"Can they pay the short-term bills?",a:"Current ratio (current assets / current liabilities) and the stricter quick ratio.",b:"They flag short-term solvency risk.",c:"Tight liquidity makes working-capital release a compelling ERP ROI story.",d:"Don't be alarmed by a sub-1 current ratio at a utility — it's structural, backed by predictable regulated cash flows."},
+  {t:"Leverage",p:"How much debt, and can they cover it?",a:"Debt-to-equity sizes leverage; interest coverage (EBIT / interest) tests the cushion.",b:"Over-levered firms are fragile when rates or earnings move.",c:"Leverage context shapes how you frame TCO and deal financing.",d:"Utilities run roughly 50/50 debt/equity or higher by design; stable cash flows justify it. (Unitil sits near 1.5× D/E.)"},
+  {t:"Returns: ROE, ROA, ROIC",p:"How well is capital used?",a:"Net income over equity, assets, or invested capital.",b:"Returns above the cost of capital create value; below it, destroy it.",c:"Returns are boardroom language — anchor your value case to them.",d:"A utility's ROE only means something next to its allowed ROE from the rate case — that's the real benchmark."},
+  {t:"Cash Conversion Cycle",p:"DSO + DIO − DPO. What does it reveal?",a:"The days cash is tied up between paying suppliers and collecting from customers.",b:"A shorter cycle self-funds growth and cuts financing needs.",c:"Connecting order-to-cash and procure-to-pay in one ERP tightens every leg.",d:"Less central for utilities (no inventory-heavy cycle); the capex funding cycle matters far more."},
+  {t:"Free Cash Flow",p:"The number boards reward?",a:"Operating cash flow minus capital expenditures.",b:"It funds dividends, buybacks, debt paydown, and M&A.",c:"Better EPM forecasting makes FCF predictable — and predictability earns CFO trust.",d:"Utilities often run persistently negative FCF from heavy capex by design — that's healthy here, not a warning."}]},
+ {n:"The Close & Controls",ic:"🔒",color:"#6A3E8E",tl:"Why a seller cares",cards:[
+  {t:"The Financial Close",p:"Your best opening question?",a:"The period-end process of finalizing the books. Best-in-class is ~3–5 days.",b:"A slow close delays decisions and signals weak controls.",c:"Ask 'what's your current days-to-close?' — it surfaces pain in one question.",d:"Utilities add regulatory reporting on top of the close — FERC and state-commission filings with their own deadlines."},
+  {t:"Account Reconciliation",p:"The spreadsheet graveyard?",a:"Matching GL balances to subledgers and supporting detail.",b:"Unreconciled accounts are audit risk and potential misstatement.",c:"Automated, continuous reconciliation replaces the month-end marathon.",d:"Utilities also reconcile regulatory assets and liabilities — accounts that don't exist in other industries."},
+  {t:"Subledger vs. GL",p:"Detail vs. summary — why both?",a:"Subledgers hold transaction detail; the GL holds summarized balances.",b:"Tracing a balance to its source is what makes books auditable.",c:"Fusion subledger accounting keeps an automatic audit trail.",d:"Utility fixed-asset subledgers are massive (every pole, transformer, meter) — plant accounting is a discipline of its own."},
+  {t:"SOX & Segregation of Duties",p:"Why is this personal for the CFO?",a:"Controls over financial reporting; SoD ensures no one controls a whole transaction.",b:"Executives personally certify controls — real legal liability.",c:"Continuous controls monitoring cuts audit cost and material-weakness risk.",d:"Same SOX rules, plus regulatory audits — utilities answer to commissions as well as the SEC."},
+  {t:"Chart of Accounts",p:"The coding spine. Why does a messy one hurt?",a:"The structured list of accounts classifying every transaction.",b:"A sprawling CoA breaks reporting, consolidation, comparability.",c:"Oracle EDM rationalizes and governs the CoA so reporting rolls up cleanly.",d:"Utilities map to the FERC Uniform System of Accounts — a prescribed chart layered onto their own."},
+  {t:"Consolidation & Eliminations",p:"Many entities, one set of books?",a:"Combining subsidiaries and removing intercompany transactions.",b:"Errors overstate consolidated revenue and profit.",c:"Fusion consolidation automates eliminations — vital for multi-entity groups.",d:"Holding companies like Exelon, AEP and Southern — many regulated subs under one parent — make consolidation and intercompany a real challenge."}]},
+ {n:"Sector: Energy, Water & Utilities",ic:"⚡",color:"#006B72",tl:"Sector & ERP angle",cards:[
+  {t:"Rate Base",p:"The heart of a regulated utility?",a:"The net plant value on which a regulator lets the utility earn a return.",b:"Utilities grow earnings mainly by growing rate base — investing in plant.",c:"Plant accounting accuracy is everything — why utilities run PowerPlan alongside or within Oracle Fusion.",d:"Your whole book lives here — Exelon, Southern, Duke, NextEra, AES, CMS all grow earnings by growing rate base."},
+  {t:"Allowed ROE",p:"Who sets a utility's profit?",a:"The return on equity a regulator permits in a rate case.",b:"Actual ROE is judged against this allowed number — the scorecard.",c:"Compare the company's real ROE to its allowed ROE to gauge regulatory health.",d:"Multi-state holders like Exelon (ComEd, PECO, BGE, Pepco) litigate a separate allowed ROE in each state — usually ~9–10%."},
+  {t:"Capital Intensity",p:"Why is CFO/capex below 1× normal here?",a:"Utilities spend more on plant than operations generate, year after year.",b:"They fund the gap with debt and equity, grow rate base, earn a return on it.",c:"The entire utility model — exactly what Unitil's CFO/capex of ~0.74× showed.",d:"Unitil spends ~35% of revenue on capex with CFO/capex near 0.74× — the textbook regulated-utility profile."},
+  {t:"Regulatory Assets & Liabilities",p:"Balance-sheet items unique to utilities?",a:"Costs or benefits deferred to future periods because regulators allow recovery or require return.",b:"They smooth earnings and exist only because of regulation.",c:"They complicate the close and reporting — a clear modernization driver.",d:"These deferrals — large at Dominion, Duke and Southern — are exactly why utilities need strong ERP and regulatory accounting."},
+  {t:"Pass-Through Costs",p:"Why isn't fuel a profit lever?",a:"Fuel, purchased power, and water supply are recovered from customers, not marked up.",b:"It's why utility 'gross margin' strips out these pass-throughs.",c:"Revenue optics can mislead — focus on margin after pass-throughs.",d:"Fuel and purchased-power recovery — think Georgia Power or PSEG — is why headline revenue can swing without touching profit."},
+  {t:"Water Utilities",p:"What makes water capital even heavier?",a:"Very long-lived assets (pipes, treatment) and sustained rate-base investment.",b:"Aging infrastructure means decades of capex and rate-base growth.",c:"Long asset lives stress fixed-asset and regulatory accounting — fertile ERP ground.",d:"Water names in your book — H2O America (ex-SJW), Connecticut Water, Maine Water, Aquarion, Veolia, United Water — carry the longest asset lives."}]},
+ {n:"Sector: Berkshire Hathaway",ic:"🏛️",color:"#9A6700",tl:"Sector & ERP angle",cards:[
+  {t:"The Conglomerate Model",p:"What kind of company is Berkshire?",a:"A holding company owning dozens of businesses plus a large equity portfolio.",b:"Its results are the sum of wildly different subsidiaries.",c:"Each sub often runs its own systems — a consolidation and standardization opportunity.",d:"Berkshire spans utilities (BHE), distribution (McLane, TTI/Mouser) and brands (Duracell, Acme Brick, Brooks, Justin) — many on your account list."},
+  {t:"Decentralization",p:"How does Berkshire run its subsidiaries?",a:"Extreme decentralization — subs operate autonomously with a tiny HQ.",b:"Capital allocation is centralized; operations are not.",c:"Fragmented finance systems = the CAO's consolidation headache and your opening.",d:"BHE's utilities run autonomously — as do Duracell, Acme Brick and Brooks — under a tiny HQ, so finance systems stay fragmented."},
+  {t:"Insurance Float",p:"Berkshire's secret financing engine?",a:"Premiums held before claims are paid — money Berkshire invests meanwhile.",b:"Low- or no-cost financing that fuels investments.",c:"Float is a balance-sheet liability that behaves like free capital — a vivid working-capital lesson.",d:"Berkshire's float helps fund capital-heavy businesses like BHE's utility build-out — cheap capital meeting rate base."},
+  {t:"Owner Earnings",p:"Buffett's preferred profit measure?",a:"Reported earnings plus non-cash charges, minus maintenance capex.",b:"Approximates true distributable cash — a cousin of free cash flow.",c:"It reframes the income statement through a cash-and-capex lens. Speak it to finance leaders.",d:"For a capital-heavy utility like BHE, maintenance capex is large, so owner earnings sit well below reported earnings."},
+  {t:"Capital Allocation",p:"Berkshire's core skill?",a:"Deciding where the cash from subsidiaries is reinvested across the empire.",b:"The single biggest driver of long-run shareholder value.",c:"Reliable subsidiary-level data is the raw material for good capital allocation.",d:"Berkshire pours capital into BHE precisely because regulated utilities offer steady, rate-base-driven returns."},
+  {t:"The Subsidiaries",p:"Where do energy and your deals fit?",a:"BNSF rail, Berkshire Hathaway Energy (utilities!), McLane and TTI distribution, Duracell, Acme Brick, Brooks, Justin, and more.",b:"BHE links Berkshire back to the utilities unit; McLane is a real Oracle case.",c:"Standardizing finance across these subs is exactly the story you're already selling.",d:"BHE is the utilities link; McLane, TTI/Mouser, Duracell, CORT and Acme Brick are all on your account list."}]}
+];
+
+const mastered=new Set();let xp=0,level=1,streak=0;const XP_LEVEL=70;
+const SAVE_KEY="finfluency_progress_v1";
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({mastered:[...mastered],xp,streak}));}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");if(!s)return;(s.mastered||[]).forEach(k=>mastered.add(k));xp=+s.xp||0;streak=+s.streak||0;level=Math.floor(xp/XP_LEVEL)+1;}catch(e){}}
+function resetProgress(){mastered.clear();xp=0;level=1;streak=0;try{localStorage.removeItem(SAVE_KEY);}catch(e){}updateHUD();renderPath();toast("Progress reset");}
+const $=id=>document.getElementById(id);
+const cid=(u,c)=>u+"-"+c;
+const unitMasteredCount=u=>UNITS[u].cards.reduce((n,_,c)=>n+(mastered.has(cid(u,c))?1:0),0);
+const unitDone=u=>unitMasteredCount(u)===UNITS[u].cards.length;
+const unitUnlocked=u=>u===0||unitDone(u-1);
+const SAY={start:["Tap to flip · swipe right when you've got it.","Knowledge dust loading… let's go!"],flip:["Here's the good stuff 👇","This is the part that wins meetings.","Read it once, own it forever."],got:["BOOM! Knowledge dust!","That's CFO-speak right there. 💪","You're dangerous now.","Filed under 'closer.'"],review:["No sweat — we'll loop back.","Repetition is how fluency sticks.","We'll catch it next pass."]};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function say(k){$("bubble").textContent=pick(SAY[k]);popFinn();}
+function popFinn(){const f=$("finn");if(!f)return;f.classList.remove("pop");void f.offsetWidth;f.classList.add("pop");}
+
+function show(scr){
+  ["start","path","vault","challenge","lesson"].forEach(s=>$(s).classList.add("hidden"));
+  const navOn=(scr==="path"||scr==="vault"||scr==="challenge");
+  $("topbar").classList.toggle("hidden",!navOn);$("nav").classList.toggle("hidden",!navOn);$("oraO").classList.toggle("hidden",!navOn);
+  $(scr).classList.remove("hidden");
+  ["navPath","navVault","navChallenge"].forEach(b=>$(b).classList.remove("on"));
+  if(scr==="path"){renderPath();$("navPath").classList.add("on");}
+  if(scr==="vault"){renderVault();$("navVault").classList.add("on");}
+  if(scr==="challenge"){$("navChallenge").classList.add("on");chReset();}
+}
+function updateHUD(){$("lvlNum").textContent=level;$("streakNum").textContent=streak;$("xpbar").style.width=((xp%XP_LEVEL)/XP_LEVEL*100)+"%";}
+function addXp(n){const before=level;xp+=n;level=Math.floor(xp/XP_LEVEL)+1;if(level>before){toast("⭐ Level "+level+"!");bigSparkle();}updateHUD();save();}
+
+function renderPath(){
+  let h="";
+  UNITS.forEach((u,i)=>{const done=unitDone(i),unlocked=unitUnlocked(i),mc=unitMasteredCount(i),tot=u.cards.length;
+    h+=`<div class="unit ${unlocked?"":"locked"}" style="border-left-color:${u.color}" ${unlocked?`onclick="openLesson(${i})"`:""}>
+      <div class="ic">${u.ic}</div><div class="meta"><div class="unitno">UNIT ${i+1}</div><div class="nm">${u.n}</div>
+      <div class="pg"><div class="pgf" style="width:${mc/tot*100}%;background:${u.color}"></div></div>
+      <div class="ct">${mc} / ${tot} mastered</div></div><div class="badge">${done?"✅":unlocked?"":"🔒"}</div></div>`;});
+  $("unitList").innerHTML=h;updateHUD();
+}
+function renderVault(){
+  const tot=UNITS.reduce((n,u)=>n+u.cards.length,0);
+  $("vaultCount").textContent=`${mastered.size} of ${tot} cards collected. Tap a card to revisit it.`;
+  let h="";
+  UNITS.forEach((u,i)=>{h+=`<div class="vgroup"><h3><span class="dot" style="background:${u.color}"></span>${u.n}</h3><div class="vgrid">`;
+    u.cards.forEach((c,ci)=>{const col=mastered.has(cid(i,ci));
+      h+=`<div class="vcard ${col?"collected":""}" ${col?`onclick="viewCard(${i},${ci})"`:""}><div class="vt">${col?c.t:"🔒 Locked"}</div><div class="vlock">${col?"Collected ✓":"Master to unlock"}</div></div>`;});
+    h+=`</div></div>`;});
+  $("vaultBody").innerHTML=h;
+}
+function viewCard(i,ci){const c=UNITS[i].cards[ci],u=UNITS[i];const m=document.createElement("div");m.className="modal";
+  m.innerHTML=`<div class="face back" style="transform:none;position:relative"><button class="close">✕</button>
+     <span class="cat" style="background:${u.color}">${u.n}</span><div class="term-sm">${c.t}</div><div class="rule"></div>
+     <div class="blk"><h4 class="h1c">What it is</h4><p>${c.a}</p></div>
+     <div class="blk"><h4 class="h2c">Why it matters</h4><p>${c.b}</p></div>
+     <div class="blk"><h4 class="h3c">${u.tl}</h4><p>${c.c}</p></div>${c.d?`<div class="blk"><h4 class="h4c">⚡ Utility lens</h4><p>${c.d}</p></div>`:""}</div>`;
+  m.onclick=e=>{if(e.target===m||e.target.classList.contains("close"))m.remove();};document.body.appendChild(m);}
+
+let curUnit=0,lq=[];
+function openLesson(i){if(!unitUnlocked(i))return;curUnit=i;lq=UNITS[i].cards.map((_,c)=>c);
+  $("lessonName").textContent="Unit "+(i+1)+" · "+UNITS[i].n;
+  show("lesson");$("lesson").classList.remove("hidden");$("topbar").classList.add("hidden");$("nav").classList.add("hidden");$("oraO").classList.add("hidden");
+  say("start");renderStage();}
+function lessonCount(){$("lessonCt").textContent=lq.length+" left";}
+function faceHTML(ci,behind){const c=UNITS[curUnit].cards[ci],u=UNITS[curUnit];
+  return `<div class="card${behind?" behind":""}" data-ci="${ci}"><div class="cardinner">
+    <div class="face front"><span class="cat" style="background:${u.color}">${u.n}</span><div class="term">${c.t}</div><div class="rule"></div><div class="prompt">${c.p}</div>
+      <div class="tapper">Tap to <b>flip</b> · swipe to answer</div><div class="stamp yes">GOT IT</div><div class="stamp no">REVIEW</div></div>
+    <div class="face back"><span class="cat" style="background:${u.color}">${u.n}</span><div class="term-sm">${c.t}</div><div class="rule"></div>
+      <div class="blk"><h4 class="h1c">What it is</h4><p>${c.a}</p></div><div class="blk"><h4 class="h2c">Why it matters</h4><p>${c.b}</p></div>
+      <div class="blk"><h4 class="h3c">${u.tl}</h4><p>${c.c}</p></div>${c.d?`<div class="blk"><h4 class="h4c">⚡ Utility lens</h4><p>${c.d}</p></div>`:""}</div></div></div>`;}
+function renderStage(){const stage=$("stage");if(lq.length===0){finishLesson();return;}
+  let h="";if(lq.length>1)h+=faceHTML(lq[1],true);h+=faceHTML(lq[0],false);stage.innerHTML=h;lessonCount();attachSwipe(stage.querySelector(".card:not(.behind)"));}
+function attachSwipe(card){if(!card)return;const inner=card.querySelector(".cardinner"),yes=card.querySelector(".stamp.yes"),no=card.querySelector(".stamp.no");
+  let sx=0,sy=0,dx=0,dy=0,drag=false,moved=false;
+  card.addEventListener("pointerdown",e=>{drag=true;moved=false;sx=e.clientX;sy=e.clientY;card.style.transition="none";card.setPointerCapture&&card.setPointerCapture(e.pointerId);});
+  card.addEventListener("pointermove",e=>{if(!drag)return;dx=e.clientX-sx;dy=e.clientY-sy;if(Math.abs(dx)>6||Math.abs(dy)>6)moved=true;
+    card.style.transform=`translate(${dx}px,${dy}px) rotate(${dx*0.05}deg)`;yes.style.opacity=dx>0?Math.min(dx/90,1):0;no.style.opacity=dx<0?Math.min(-dx/90,1):0;});
+  const end=()=>{if(!drag)return;drag=false;card.style.transition="transform .35s,opacity .35s";
+    if(!moved){inner.classList.toggle("flipped");if(inner.classList.contains("flipped"))say("flip");card.style.transform="";return;}
+    if(dx>90)commit(card,1);else if(dx<-90)commit(card,-1);else{card.style.transform="";yes.style.opacity=0;no.style.opacity=0;}};
+  card.addEventListener("pointerup",end);card.addEventListener("pointercancel",end);}
+function commit(card,dir){card.style.transform=`translate(${dir*600}px,${dir*40}px) rotate(${dir*30}deg)`;card.style.opacity="0";const ci=lq.shift();
+  if(dir>0){mastered.add(cid(curUnit,ci));addXp(10);streak++;if(streak%5===0)toast("🔥 "+streak+" streak!");say("got");sparkle();}
+  else{addXp(3);streak=0;lq.push(ci);say("review");}save();setTimeout(()=>{updateHUD();renderStage();},330);}
+function finishLesson(){toast(unitDone(curUnit)?"Unit "+(curUnit+1)+" complete! 🎉":"Nice work!");bigSparkle();setTimeout(()=>show("path"),700);}
+$("bGot").onclick=()=>{const c=$("stage").querySelector(".card:not(.behind)");if(c)commit(c,1);};
+$("bReview").onclick=()=>{const c=$("stage").querySelector(".card:not(.behind)");if(c)commit(c,-1);};
+$("bFlip").onclick=()=>{const inner=$("stage").querySelector(".card:not(.behind) .cardinner");if(inner){inner.classList.toggle("flipped");if(inner.classList.contains("flipped"))say("flip");}};
+$("lessonX").onclick=()=>show("path");
+
+/* ===== CHALLENGE SUB-MODULE ===== */
+let chFocus="mixed",CHQ=[],chi=0,chScore=0;
+const SAMPLE={company:"Unitil Corporation",period:"FY2024 (sample)",revenue:494.8,cogs:235.0,operatingIncome:90.6,netIncome:47.1,totalAssets:1794.5,totalLiabilities:1282.0,totalEquity:512.5,cash:6.3,currentAssets:188.8,currentLiabilities:228.7,totalDebt:749.1,operatingCashFlow:130.0,capex:-175.0};
+document.querySelectorAll("#chFocusChips .chip").forEach(c=>c.onclick=()=>{document.querySelectorAll("#chFocusChips .chip").forEach(x=>x.classList.remove("on"));c.classList.add("on");chFocus=c.dataset.f;});
+document.querySelectorAll(".chpick").forEach(p=>p.onclick=()=>{$("chTicker").value=p.dataset.t;chAnalyze();});
+$("chGo").onclick=chAnalyze;
+$("chTicker").addEventListener("keydown",e=>{if(e.key==="Enter")chAnalyze();});
+$("chAgain").onclick=chReset;
+function chReset(){$("chEntry").classList.remove("hidden");$("chQuiz").classList.add("hidden");$("chResult").classList.add("hidden");$("chNote").className="chnote";}
+function chFlag(kind,msg){const n=$("chNote");n.className="chnote "+kind;n.textContent=msg;}
+async function chAnalyze(){
+  const tk=$("chTicker").value.trim().toUpperCase();if(!tk){chFlag("err","Enter a ticker first.");return;}
+  const btn=$("chGo");btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Pulling…';$("chNote").className="chnote";
+  try{
+    const r=await fetch((window.API_BASE||"")+"/api/financials?ticker="+encodeURIComponent(tk));
+    const d=await r.json();
+    if(!d||d.error||(!d.revenue&&!d.totalAssets))throw 0;chStart(d);
+  }catch(err){chFlag("warn","Couldn't reach the live data service for "+tk+" — showing a Unitil (UTL) demo so you can still play. Live data for any US ticker works on the deployed site.");chStart(SAMPLE);}
+  finally{btn.disabled=false;btn.textContent="Analyze";}
+}
+const cf$=n=>n==null?"—":(n<0?"("+Math.abs(n).toLocaleString()+")":n.toLocaleString());
+function chRenderSummary(d){const rows=[["Revenue",d.revenue],["Operating income",d.operatingIncome],["Net income",d.netIncome],["Total assets",d.totalAssets],["Total equity",d.totalEquity],["Total debt",d.totalDebt],["Operating cash flow",d.operatingCashFlow],["Capex",d.capex]].filter(r=>r[1]!=null);
+  $("chSummary").innerHTML=`<h2>${d.company||"Company"}</h2><div class="rule"></div><div class="per">${d.period||"Latest period"} · $ millions</div>
+    <div class="chgrid">${rows.map(r=>`<div class="chli"><span class="k">${r[0]}</span><span class="v">${cf$(r[1])}</span></div>`).join("")}</div>`;}
+const pctF=v=>(v*100).toFixed(1)+"%",xF=v=>v.toFixed(2)+"×",cnm=d=>(d.company||"the company").split(" ")[0]+"'s";
+function mc(correct,distract,fmt){if(!Number.isFinite(correct))return null;let opts=[{v:correct,ok:true}];distract.forEach(x=>{if(Number.isFinite(x))opts.push({v:x,ok:false});});
+  const seen={};opts=opts.filter(o=>{const k=fmt(o.v);if(seen[k])return false;seen[k]=1;return true;});
+  for(let i=opts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[opts[i],opts[j]]=[opts[j],opts[i]];}
+  return{options:opts.map(o=>({label:fmt(o.v),ok:o.ok})),answer:opts.findIndex(o=>o.ok)};}
+function chBuild(d){const has=(...k)=>k.every(x=>d[x]!=null);
+  const G={prof:[
+    ()=>has("revenue","cogs")&&{tag:"Gross margin",concept:"prof",q:`What was ${cnm(d)} gross margin?`,...mc((d.revenue-d.cogs)/d.revenue,[d.cogs/d.revenue,(d.revenue-d.cogs)/d.cogs*0.5,(d.netIncome||d.revenue*0.1)/d.revenue],pctF),ex:`Gross margin = (Revenue − COGS) ÷ Revenue = (${cf$(d.revenue)} − ${cf$(d.cogs)}) ÷ ${cf$(d.revenue)}. Core product profitability before overhead.`},
+    ()=>has("operatingIncome","revenue")&&{tag:"Operating margin",concept:"prof",q:`What was ${cnm(d)} operating margin?`,...mc(d.operatingIncome/d.revenue,[d.operatingIncome/d.revenue*1.6,d.operatingIncome/d.revenue*0.55,(d.netIncome||0)/d.revenue],pctF),ex:`Operating margin = Operating income ÷ Revenue = ${cf$(d.operatingIncome)} ÷ ${cf$(d.revenue)}. The core business before financing and tax.`},
+    ()=>has("netIncome","revenue")&&{tag:"Net margin",concept:"prof",q:`What was ${cnm(d)} net margin?`,...mc(d.netIncome/d.revenue,[d.netIncome/d.revenue*1.7,d.netIncome/d.revenue*0.6,d.netIncome/(d.totalAssets||d.revenue*5)],pctF),ex:`Net margin = Net income ÷ Revenue = ${cf$(d.netIncome)} ÷ ${cf$(d.revenue)}. What's left of each revenue dollar.`}],
+   liq:[
+    ()=>has("currentAssets","currentLiabilities")&&{tag:"Current ratio",concept:"liq",q:`What is the current ratio?`,...mc(d.currentAssets/d.currentLiabilities,[d.currentLiabilities/d.currentAssets,d.currentAssets/d.currentLiabilities+0.6,d.currentAssets/d.currentLiabilities-0.4],xF),ex:`Current ratio = Current assets ÷ Current liabilities = ${cf$(d.currentAssets)} ÷ ${cf$(d.currentLiabilities)}. Below 1× is normal for capital-heavy utilities.`},
+    ()=>has("totalDebt","totalEquity")&&{tag:"Leverage",concept:"liq",q:`What is the debt-to-equity ratio?`,...mc(d.totalDebt/d.totalEquity,[d.totalEquity/d.totalDebt,d.totalDebt/d.totalEquity+0.7,d.totalDebt/d.totalEquity*0.5],xF),ex:`Debt-to-equity = Total debt ÷ Equity = ${cf$(d.totalDebt)} ÷ ${cf$(d.totalEquity)}. Utilities run high by design.`}],
+   ret:[
+    ()=>has("netIncome","totalEquity")&&{tag:"ROE",concept:"ret",q:`Return on equity (net income ÷ equity)?`,...mc(d.netIncome/d.totalEquity,[d.netIncome/d.totalEquity*1.8,d.netIncome/(d.totalAssets||d.totalEquity*3),d.netIncome/d.totalEquity*0.5],pctF),ex:`ROE = Net income ÷ Equity = ${cf$(d.netIncome)} ÷ ${cf$(d.totalEquity)}. For utilities, compare to the allowed ROE from rate cases.`},
+    ()=>has("netIncome","totalAssets")&&{tag:"ROA",concept:"ret",q:`Return on assets (net income ÷ total assets)?`,...mc(d.netIncome/d.totalAssets,[d.netIncome/d.totalAssets*2,d.netIncome/(d.totalEquity||d.totalAssets/3),d.netIncome/d.totalAssets*0.5],pctF),ex:`ROA = Net income ÷ Total assets = ${cf$(d.netIncome)} ÷ ${cf$(d.totalAssets)}. Low by design when the asset base is huge.`}],
+   cash:[
+    ()=>has("operatingCashFlow","capex")&&{tag:"Self-funding",concept:"cash",q:`CFO ÷ capex — how much of the build do operations cover?`,...mc(d.operatingCashFlow/Math.abs(d.capex),[Math.abs(d.capex)/d.operatingCashFlow,d.operatingCashFlow/Math.abs(d.capex)+0.5,d.operatingCashFlow/Math.abs(d.capex)*0.5],xF),ex:`CFO ÷ capex = ${cf$(d.operatingCashFlow)} ÷ ${cf$(Math.abs(d.capex))}. Below 1× means operations don't cover the build — the gap is debt and equity. The classic utility story.`},
+    ()=>has("operatingCashFlow","capex")&&{tag:"Free cash flow",concept:"cash",q:`Is free cash flow (CFO − capex) positive or negative?`,options:[{label:"Positive",ok:(d.operatingCashFlow+d.capex)>0},{label:"Negative",ok:(d.operatingCashFlow+d.capex)<=0}],answer:(d.operatingCashFlow+d.capex)>0?0:1,ex:`FCF = CFO − capex = ${cf$(d.operatingCashFlow)} − ${cf$(Math.abs(d.capex))} = ${cf$(d.operatingCashFlow+d.capex)}. Heavy investors often run negative FCF while growing the asset base.`}],
+   found:[
+    ()=>has("totalAssets","totalLiabilities","totalEquity")&&{tag:"The balance tie",concept:"found",q:`Do liabilities + equity equal total assets here?`,options:[{label:"Yes — it balances",ok:Math.abs(d.totalAssets-(d.totalLiabilities+d.totalEquity))<=Math.max(2,d.totalAssets*0.01)},{label:"No — it's off",ok:Math.abs(d.totalAssets-(d.totalLiabilities+d.totalEquity))>Math.max(2,d.totalAssets*0.01)}],answer:Math.abs(d.totalAssets-(d.totalLiabilities+d.totalEquity))<=Math.max(2,d.totalAssets*0.01)?0:1,ex:`Assets = Liabilities + Equity. ${cf$(d.totalAssets)} vs ${cf$(d.totalLiabilities)} + ${cf$(d.totalEquity)} = ${cf$(d.totalLiabilities+d.totalEquity)}. The first integrity tie.`},
+    ()=>has("netIncome")&&{tag:"Statement links",concept:"found",q:`This period's net income flows into which balance-sheet line?`,options:[{label:"Retained earnings",ok:true},{label:"Cash",ok:false},{label:"Goodwill",ok:false},{label:"Accounts payable",ok:false}],answer:0,ex:`Net income increases retained earnings within equity — and it's also the starting line of the cash flow statement. The core linkage.`}]};
+  let pool=[];if(chFocus==="mixed"){Object.values(G).forEach(a=>pool.push(...a));}else{pool=G[chFocus]||[];if(pool.length<3)Object.values(G).forEach(a=>pool.push(...a));}
+  let qs=pool.map(fn=>fn()).filter(q=>q&&Array.isArray(q.options)&&q.options.length>=2&&q.answer>=0);for(let i=qs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[qs[i],qs[j]]=[qs[j],qs[i]];}return qs.slice(0,5);}
+const CHTAG={prof:"#0572CE",liq:"#6A3E8E",ret:"#1B7A47",cash:"#006B72",found:"#C74634"};
+function chStart(d){chRenderSummary(d);CHQ=chBuild(d);chi=0;chScore=0;$("chEntry").classList.add("hidden");$("chResult").classList.add("hidden");$("chQuiz").classList.remove("hidden");
+  if(CHQ.length===0){$("chQcard").innerHTML='<div class="chqq">Not enough data came back to build a puzzle. Try another ticker.</div>';return;}chRenderQ();}
+function chRenderQ(){const q=CHQ[chi];
+  $("chQcard").innerHTML=`<div class="chmeta"><span class="chtag" style="background:${CHTAG[q.concept]||'#0572CE'}">${q.tag}</span><span class="chprog">Question ${chi+1} of ${CHQ.length}</span></div>
+    <div class="chqq">${q.q}</div><div id="chOpts">${q.options.map((o,i)=>`<button class="chopt" data-i="${i}">${o.label}</button>`).join("")}</div>
+    <div class="chexp" id="chEx">${q.ex}</div><button class="chnext" id="chNext">${chi+1<CHQ.length?"Next":"See score"}</button>`;
+  document.querySelectorAll("#chOpts .chopt").forEach(b=>b.onclick=()=>chChoose(parseInt(b.dataset.i)));
+  $("chNext").onclick=()=>{chi++;chi<CHQ.length?chRenderQ():chFinish();};}
+function chChoose(i){const q=CHQ[chi];
+  document.querySelectorAll("#chOpts .chopt").forEach((b,idx)=>{b.onclick=null;if(idx===q.answer)b.classList.add("correct");else if(idx===i)b.classList.add("wrong");else b.classList.add("dim");});
+  if(i===q.answer){chScore++;addXp(8);streak++;if(streak%5===0)toast("🔥 "+streak+" streak!");chSpark();}else{streak=0;updateHUD();}save();
+  $("chEx").classList.add("show");$("chNext").classList.add("show");}
+function chFinish(){$("chQuiz").classList.add("hidden");$("chResult").classList.remove("hidden");$("chRScore").textContent=chScore+" / "+CHQ.length;
+  const pct=chScore/CHQ.length;$("chRTitle").textContent=pct===1?"Flawless! 🏆":pct>=0.6?"Solid work! 💪":"Keep practicing!";
+  $("chRMsg").textContent=pct===1?"You read that company's statements like a CFO. Go run the real meeting.":pct>=0.6?"You're applying the concepts to live numbers — exactly the goal.":"Revisit the unit cards, then run it again. Repetition builds fluency.";}
+function chSpark(){for(let i=0;i<6;i++)spawnSpark(window.innerWidth/2+(Math.random()-.5)*180,200+Math.random()*60);}
+
+/* fx + boot */
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600);}
+function sparkle(){const f=$("finn").getBoundingClientRect();for(let i=0;i<5;i++)spawnSpark(f.left+20+Math.random()*30,f.top+Math.random()*20);}
+function bigSparkle(){for(let i=0;i<18;i++)spawnSpark(window.innerWidth/2+(Math.random()-.5)*240,window.innerHeight*0.4+Math.random()*60);}
+function spawnSpark(x,y){const s=document.createElement("div");s.className="spark";s.textContent=pick(["✨","⭐","💫","🪙"]);s.style.left=x+"px";s.style.top=y+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),1100);}
+$("startBtn").onclick=()=>show("path");
+$("navPath").onclick=()=>show("path");$("navVault").onclick=()=>show("vault");$("navChallenge").onclick=()=>show("challenge");
+$("resetBtn").onclick=()=>{if(confirm("Reset all progress? This clears your XP, level, streak and Vault on this device."))resetProgress();};
+window.openLesson=openLesson;window.viewCard=viewCard;
+load();updateHUD();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+</body>
+</html>
