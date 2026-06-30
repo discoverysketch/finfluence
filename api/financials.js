@@ -90,6 +90,7 @@ async function fromEdgar(ticker) {
   let cogs = pickDuration(["CostOfGoodsAndServicesSold", "CostOfRevenue", "CostOfGoodsSold"]);
   const opInc = pickDuration(["OperatingIncomeLoss"]);
   const ni = pickDuration(["NetIncomeLoss", "ProfitLoss"]);
+  const intexp = pickDuration(["InterestExpense", "InterestAndDebtExpense", "InterestExpenseNonoperating"]);
   const cfo = pickDuration(["NetCashProvidedByUsedInOperatingActivities", "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"]);
   const capex = pickDuration(["PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsForCapitalImprovements", "PaymentsToAcquireProductiveAssets"]);
   const assets = pickInstant(["Assets"]);
@@ -121,7 +122,7 @@ async function fromEdgar(ticker) {
 
   const data = {
     company: found.title, period,
-    revenue: M(rev?.val), cogs: M(cogs?.val), operatingIncome: M(opInc?.val), netIncome: M(ni?.val),
+    revenue: M(rev?.val), cogs: M(cogs?.val), operatingIncome: M(opInc?.val), netIncome: M(ni?.val), interestExpense: M(intexp?.val),
     totalAssets: M(assets?.val), totalLiabilities: M(liab?.val), totalEquity: M(equity?.val),
     cash: M(cash?.val), currentAssets: M(ca?.val), currentLiabilities: M(cl?.val),
     totalDebt: M(debt), operatingCashFlow: M(cfo?.val),

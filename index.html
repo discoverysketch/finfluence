@@ -115,7 +115,11 @@
   .chlead .finn{width:56px;height:68px;flex:0 0 auto;animation:bob 2.6s ease-in-out infinite}
   .fl{font-size:12px;color:var(--ink2);font-weight:600;display:block;margin-bottom:5px}
   .tickrow{display:flex;gap:9px}
-  #chTicker{flex:1;border:1px solid var(--border);border-radius:8px;padding:13px;font-size:18px;font-weight:700;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:1px;color:var(--ink);background:#fff}
+  #chTicker,#chTicker2{flex:1;min-width:0;border:1px solid var(--border);border-radius:8px;padding:13px;font-size:18px;font-weight:700;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:1px;color:var(--ink);background:#fff}
+  .cmpgrid{display:grid;grid-template-columns:1fr auto auto;gap:5px 12px;margin-top:8px;align-items:center}
+  .cmph{font-size:11px;font-weight:700;color:var(--muted);text-align:right}.cmph:first-child{text-align:left}
+  .cmpk{font-size:12.5px;color:var(--ink2)}
+  .cmpv{font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;text-align:right}
   .chgo{background:var(--red);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;padding:0 20px;cursor:pointer}
   .chgo:disabled{opacity:.6}
   .chpicks{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;align-items:center}
@@ -240,9 +244,11 @@
     <div class="vhead">Company <span>Challenge</span></div>
     <div id="chEntry">
       <div class="chlead"><svg class="finn"><use href="#finn-sym"/></svg>
-        <div class="bubble">Pick a company and a focus. I'll pull its latest quarter and turn the numbers into a puzzle — prove what you learned and earn XP!</div></div>
-      <label class="fl">Ticker</label>
-      <div class="tickrow"><input id="chTicker" placeholder="NEE" maxlength="6"/><button class="chgo" id="chGo">Analyze</button></div>
+        <div class="bubble">Pick a company and a focus — or switch to Compare and pit two companies head-to-head. I'll pull the numbers and turn them into a puzzle for XP!</div></div>
+      <label class="fl">Mode</label>
+      <div class="chips" id="chModeChips"><button class="chip on" data-m="single">Single company</button><button class="chip" data-m="compare">Compare two</button></div>
+      <label class="fl" style="margin-top:14px">Ticker</label>
+      <div class="tickrow"><input id="chTicker" placeholder="NEE" maxlength="6"/><input id="chTicker2" class="hidden" placeholder="vs · SO" maxlength="6"/><button class="chgo" id="chGo">Analyze</button></div>
       <div class="chpicks"><span>Your book:</span>
         <button class="chpick" data-t="NEE">NEE</button><button class="chpick" data-t="EXC">EXC</button>
         <button class="chpick" data-t="SO">SO</button><button class="chpick" data-t="DUK">DUK</button>
@@ -250,7 +256,7 @@
         <button class="chpick" data-t="VST">VST</button><button class="chpick" data-t="AES">AES</button>
         <button class="chpick" data-t="CMS">CMS</button><button class="chpick" data-t="OGE">OGE</button>
         <button class="chpick" data-t="UTL">UTL</button><button class="chpick" data-t="BRK.B">BRK.B</button></div>
-      <div class="chfocus"><label class="fl">Focus the puzzle on…</label>
+      <div class="chfocus" id="chFocusWrap"><label class="fl">Focus the puzzle on…</label>
         <div class="chips" id="chFocusChips">
           <button class="chip on" data-f="mixed">Mixed</button><button class="chip" data-f="prof">Profitability</button>
           <button class="chip" data-f="liq">Liquidity &amp; Leverage</button><button class="chip" data-f="ret">Returns</button>
@@ -513,27 +519,45 @@ $("bFlip").onclick=()=>{const inner=$("stage").querySelector(".card:not(.behind)
 $("lessonX").onclick=()=>show(curTrack==="U"?"path":"solutions");
 
 /* ===== CHALLENGE SUB-MODULE ===== */
-let chFocus="mixed",CHQ=[],chi=0,chScore=0;
-const SAMPLE={company:"Unitil Corporation",period:"FY2024 (sample)",revenue:494.8,cogs:235.0,operatingIncome:90.6,netIncome:47.1,totalAssets:1794.5,totalLiabilities:1282.0,totalEquity:512.5,cash:6.3,currentAssets:188.8,currentLiabilities:228.7,totalDebt:749.1,operatingCashFlow:130.0,capex:-175.0};
+let chFocus="mixed",chMode="single",CHQ=[],chi=0,chScore=0;
+const SAMPLE={company:"Unitil Corporation",ticker:"UTL",period:"FY2024 (sample)",revenue:494.8,cogs:235.0,operatingIncome:90.6,netIncome:47.1,interestExpense:38.0,totalAssets:1794.5,totalLiabilities:1282.0,totalEquity:512.5,cash:6.3,currentAssets:188.8,currentLiabilities:228.7,totalDebt:749.1,operatingCashFlow:130.0,capex:-175.0};
 document.querySelectorAll("#chFocusChips .chip").forEach(c=>c.onclick=()=>{document.querySelectorAll("#chFocusChips .chip").forEach(x=>x.classList.remove("on"));c.classList.add("on");chFocus=c.dataset.f;});
-document.querySelectorAll(".chpick").forEach(p=>p.onclick=()=>{$("chTicker").value=p.dataset.t;chAnalyze();});
+document.querySelectorAll("#chModeChips .chip").forEach(c=>c.onclick=()=>{document.querySelectorAll("#chModeChips .chip").forEach(x=>x.classList.remove("on"));c.classList.add("on");chMode=c.dataset.m;
+  $("chTicker2").classList.toggle("hidden",chMode!=="compare");$("chFocusWrap").classList.toggle("hidden",chMode==="compare");
+  $("chGo").textContent=chMode==="compare"?"Compare":"Analyze";$("chTicker").placeholder=chMode==="compare"?"NEE":"NEE";});
+document.querySelectorAll(".chpick").forEach(p=>p.onclick=()=>{
+  if(chMode==="compare"){const a=$("chTicker"),b=$("chTicker2");if(!a.value.trim())a.value=p.dataset.t;else b.value=p.dataset.t;}
+  else{$("chTicker").value=p.dataset.t;chAnalyze();}});
 $("chGo").onclick=chAnalyze;
 $("chTicker").addEventListener("keydown",e=>{if(e.key==="Enter")chAnalyze();});
 $("chAgain").onclick=chReset;
 function chReset(){$("chEntry").classList.remove("hidden");$("chQuiz").classList.add("hidden");$("chResult").classList.add("hidden");$("chNote").className="chnote";}
 function chFlag(kind,msg){const n=$("chNote");n.className="chnote "+kind;n.textContent=msg;}
+function fetchFin(tk){return fetch((window.API_BASE||"")+"/api/financials?ticker="+encodeURIComponent(tk))
+  .then(r=>r.json()).then(d=>{if(!d||d.error||(!d.revenue&&!d.totalAssets))return null;d.ticker=tk;return d;}).catch(()=>null);}
 async function chAnalyze(){
+  if(chMode==="compare")return chAnalyzeCompare();
   const tk=$("chTicker").value.trim().toUpperCase();if(!tk){chFlag("err","Enter a ticker first.");return;}
   const btn=$("chGo");btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Pulling…';$("chNote").className="chnote";
   try{
-    const r=await fetch((window.API_BASE||"")+"/api/financials?ticker="+encodeURIComponent(tk));
-    const d=await r.json();
-    if(!d||d.error||(!d.revenue&&!d.totalAssets))throw 0;chStart(d);
+    const d=await fetchFin(tk);
+    if(!d)throw 0;chStart(d);
   }catch(err){chFlag("warn","Couldn't reach the live data service for "+tk+" — showing a Unitil (UTL) demo so you can still play. Live data for any US ticker works on the deployed site.");chStart(SAMPLE);}
   finally{btn.disabled=false;btn.textContent="Analyze";}
 }
+async function chAnalyzeCompare(){
+  const a=$("chTicker").value.trim().toUpperCase(),b=$("chTicker2").value.trim().toUpperCase();
+  if(!a||!b){chFlag("err","Enter two tickers to compare.");return;}
+  if(a===b){chFlag("err","Pick two different companies.");return;}
+  const btn=$("chGo");btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Pulling…';$("chNote").className="chnote";
+  try{
+    const [da,db]=await Promise.all([fetchFin(a),fetchFin(b)]);
+    if(!da||!db){chFlag("warn","Couldn't pull both companies live — compare needs live data for both (works on the deployed site).");return;}
+    chStartCompare(da,db);
+  }finally{btn.disabled=false;btn.textContent="Compare";}
+}
 const cf$=n=>n==null?"—":(n<0?"("+Math.abs(n).toLocaleString()+")":n.toLocaleString());
-function chRenderSummary(d){const rows=[["Revenue",d.revenue],["Operating income",d.operatingIncome],["Net income",d.netIncome],["Total assets",d.totalAssets],["Total equity",d.totalEquity],["Total debt",d.totalDebt],["Operating cash flow",d.operatingCashFlow],["Capex",d.capex]].filter(r=>r[1]!=null);
+function chRenderSummary(d){const rows=[["Revenue",d.revenue],["Operating income",d.operatingIncome],["Net income",d.netIncome],["Interest expense",d.interestExpense],["Total assets",d.totalAssets],["Total equity",d.totalEquity],["Total debt",d.totalDebt],["Operating cash flow",d.operatingCashFlow],["Capex",d.capex]].filter(r=>r[1]!=null);
   $("chSummary").innerHTML=`<h2>${d.company||"Company"}</h2><div class="rule"></div><div class="per">${d.period||"Latest period"} · $ millions</div>
     <div class="chgrid">${rows.map(r=>`<div class="chli"><span class="k">${r[0]}</span><span class="v">${cf$(r[1])}</span></div>`).join("")}</div>`;}
 const pctF=v=>(v*100).toFixed(1)+"%",xF=v=>v.toFixed(2)+"×",cnm=d=>(d.company||"the company").split(" ")[0]+"'s";
@@ -548,13 +572,19 @@ function chBuild(d){const has=(...k)=>k.every(x=>d[x]!=null);
     ()=>has("netIncome","revenue")&&{tag:"Net margin",concept:"prof",q:`What was ${cnm(d)} net margin?`,...mc(d.netIncome/d.revenue,[d.netIncome/d.revenue*1.7,d.netIncome/d.revenue*0.6,d.netIncome/(d.totalAssets||d.revenue*5)],pctF),ex:`Net margin = Net income ÷ Revenue = ${cf$(d.netIncome)} ÷ ${cf$(d.revenue)}. What's left of each revenue dollar.`}],
    liq:[
     ()=>has("currentAssets","currentLiabilities")&&{tag:"Current ratio",concept:"liq",q:`What is the current ratio?`,...mc(d.currentAssets/d.currentLiabilities,[d.currentLiabilities/d.currentAssets,d.currentAssets/d.currentLiabilities+0.6,d.currentAssets/d.currentLiabilities-0.4],xF),ex:`Current ratio = Current assets ÷ Current liabilities = ${cf$(d.currentAssets)} ÷ ${cf$(d.currentLiabilities)}. Below 1× is normal for capital-heavy utilities.`},
-    ()=>has("totalDebt","totalEquity")&&{tag:"Leverage",concept:"liq",q:`What is the debt-to-equity ratio?`,...mc(d.totalDebt/d.totalEquity,[d.totalEquity/d.totalDebt,d.totalDebt/d.totalEquity+0.7,d.totalDebt/d.totalEquity*0.5],xF),ex:`Debt-to-equity = Total debt ÷ Equity = ${cf$(d.totalDebt)} ÷ ${cf$(d.totalEquity)}. Utilities run high by design.`}],
+    ()=>has("totalDebt","totalEquity")&&{tag:"Leverage",concept:"liq",q:`What is the debt-to-equity ratio?`,...mc(d.totalDebt/d.totalEquity,[d.totalEquity/d.totalDebt,d.totalDebt/d.totalEquity+0.7,d.totalDebt/d.totalEquity*0.5],xF),ex:`Debt-to-equity = Total debt ÷ Equity = ${cf$(d.totalDebt)} ÷ ${cf$(d.totalEquity)}. Utilities run high by design.`},
+    ()=>has("operatingIncome","interestExpense")&&d.interestExpense>0&&{tag:"Interest coverage",concept:"liq",q:`Interest coverage — EBIT ÷ interest expense?`,...mc(d.operatingIncome/d.interestExpense,[d.interestExpense/d.operatingIncome,d.operatingIncome/d.interestExpense+1.5,d.operatingIncome/d.interestExpense*0.5],xF),ex:`Interest coverage = Operating income ÷ Interest = ${cf$(d.operatingIncome)} ÷ ${cf$(d.interestExpense)}. How many times earnings cover interest — a key credit metric for levered utilities.`},
+    ()=>has("cash","currentLiabilities")&&{tag:"Cash ratio",concept:"liq",q:`Cash ÷ current liabilities — the strictest liquidity test?`,...mc(d.cash/d.currentLiabilities,[d.currentLiabilities/d.cash,d.cash/d.currentLiabilities+0.3,d.cash/d.currentLiabilities*2],xF),ex:`Cash ratio = Cash ÷ Current liabilities = ${cf$(d.cash)} ÷ ${cf$(d.currentLiabilities)}. Utilities hold little cash, so this runs very low.`},
+    ()=>has("currentAssets","currentLiabilities")&&{tag:"Working capital",concept:"liq",q:`Is working capital positive or negative?`,options:[{label:"Positive",ok:(d.currentAssets-d.currentLiabilities)>0},{label:"Negative",ok:(d.currentAssets-d.currentLiabilities)<=0}],answer:(d.currentAssets-d.currentLiabilities)>0?0:1,ex:`Working capital = Current assets − Current liabilities = ${cf$(d.currentAssets)} − ${cf$(d.currentLiabilities)} = ${cf$(d.currentAssets-d.currentLiabilities)}. Utilities often run negative — normal, backed by steady regulated cash flows.`}],
    ret:[
+    ()=>has("revenue","totalAssets")&&{tag:"Asset turnover",concept:"ret",q:`Asset turnover — revenue ÷ total assets?`,...mc(d.revenue/d.totalAssets,[d.totalAssets/d.revenue,d.revenue/d.totalAssets+0.3,d.revenue/d.totalAssets*2],xF),ex:`Asset turnover = Revenue ÷ Total assets = ${cf$(d.revenue)} ÷ ${cf$(d.totalAssets)}. Low for capital-heavy utilities — a huge asset base per revenue dollar.`},
     ()=>has("netIncome","totalEquity")&&{tag:"ROE",concept:"ret",q:`Return on equity (net income ÷ equity)?`,...mc(d.netIncome/d.totalEquity,[d.netIncome/d.totalEquity*1.8,d.netIncome/(d.totalAssets||d.totalEquity*3),d.netIncome/d.totalEquity*0.5],pctF),ex:`ROE = Net income ÷ Equity = ${cf$(d.netIncome)} ÷ ${cf$(d.totalEquity)}. For utilities, compare to the allowed ROE from rate cases.`},
     ()=>has("netIncome","totalAssets")&&{tag:"ROA",concept:"ret",q:`Return on assets (net income ÷ total assets)?`,...mc(d.netIncome/d.totalAssets,[d.netIncome/d.totalAssets*2,d.netIncome/(d.totalEquity||d.totalAssets/3),d.netIncome/d.totalAssets*0.5],pctF),ex:`ROA = Net income ÷ Total assets = ${cf$(d.netIncome)} ÷ ${cf$(d.totalAssets)}. Low by design when the asset base is huge.`}],
    cash:[
     ()=>has("operatingCashFlow","capex")&&{tag:"Self-funding",concept:"cash",q:`CFO ÷ capex — how much of the build do operations cover?`,...mc(d.operatingCashFlow/Math.abs(d.capex),[Math.abs(d.capex)/d.operatingCashFlow,d.operatingCashFlow/Math.abs(d.capex)+0.5,d.operatingCashFlow/Math.abs(d.capex)*0.5],xF),ex:`CFO ÷ capex = ${cf$(d.operatingCashFlow)} ÷ ${cf$(Math.abs(d.capex))}. Below 1× means operations don't cover the build — the gap is debt and equity. The classic utility story.`},
-    ()=>has("operatingCashFlow","capex")&&{tag:"Free cash flow",concept:"cash",q:`Is free cash flow (CFO − capex) positive or negative?`,options:[{label:"Positive",ok:(d.operatingCashFlow+d.capex)>0},{label:"Negative",ok:(d.operatingCashFlow+d.capex)<=0}],answer:(d.operatingCashFlow+d.capex)>0?0:1,ex:`FCF = CFO − capex = ${cf$(d.operatingCashFlow)} − ${cf$(Math.abs(d.capex))} = ${cf$(d.operatingCashFlow+d.capex)}. Heavy investors often run negative FCF while growing the asset base.`}],
+    ()=>has("operatingCashFlow","capex")&&{tag:"Free cash flow",concept:"cash",q:`Is free cash flow (CFO − capex) positive or negative?`,options:[{label:"Positive",ok:(d.operatingCashFlow+d.capex)>0},{label:"Negative",ok:(d.operatingCashFlow+d.capex)<=0}],answer:(d.operatingCashFlow+d.capex)>0?0:1,ex:`FCF = CFO − capex = ${cf$(d.operatingCashFlow)} − ${cf$(Math.abs(d.capex))} = ${cf$(d.operatingCashFlow+d.capex)}. Heavy investors often run negative FCF while growing the asset base.`},
+    ()=>has("capex","revenue")&&{tag:"Capex intensity",concept:"cash",q:`Capex as a share of revenue?`,...mc(Math.abs(d.capex)/d.revenue,[d.revenue/Math.abs(d.capex),Math.abs(d.capex)/d.revenue*0.5,Math.abs(d.capex)/d.revenue*1.8],pctF),ex:`Capex intensity = |Capex| ÷ Revenue = ${cf$(Math.abs(d.capex))} ÷ ${cf$(d.revenue)}. Utilities run very high — they reinvest heavily to grow rate base.`},
+    ()=>has("operatingCashFlow","revenue")&&{tag:"Cash flow margin",concept:"cash",q:`Operating cash flow margin — CFO ÷ revenue?`,...mc(d.operatingCashFlow/d.revenue,[d.revenue/d.operatingCashFlow,d.operatingCashFlow/d.revenue*1.6,d.operatingCashFlow/d.revenue*0.5],pctF),ex:`CFO margin = Operating cash flow ÷ Revenue = ${cf$(d.operatingCashFlow)} ÷ ${cf$(d.revenue)}. High for utilities thanks to the huge depreciation add-back.`}],
    found:[
     ()=>has("totalAssets","totalLiabilities","totalEquity")&&{tag:"The balance tie",concept:"found",q:`Do liabilities + equity equal total assets here?`,options:[{label:"Yes — it balances",ok:Math.abs(d.totalAssets-(d.totalLiabilities+d.totalEquity))<=Math.max(2,d.totalAssets*0.01)},{label:"No — it's off",ok:Math.abs(d.totalAssets-(d.totalLiabilities+d.totalEquity))>Math.max(2,d.totalAssets*0.01)}],answer:Math.abs(d.totalAssets-(d.totalLiabilities+d.totalEquity))<=Math.max(2,d.totalAssets*0.01)?0:1,ex:`Assets = Liabilities + Equity. ${cf$(d.totalAssets)} vs ${cf$(d.totalLiabilities)} + ${cf$(d.totalEquity)} = ${cf$(d.totalLiabilities+d.totalEquity)}. The first integrity tie.`},
     ()=>has("netIncome")&&{tag:"Statement links",concept:"found",q:`This period's net income flows into which balance-sheet line?`,options:[{label:"Retained earnings",ok:true},{label:"Cash",ok:false},{label:"Goodwill",ok:false},{label:"Accounts payable",ok:false}],answer:0,ex:`Net income increases retained earnings within equity — and it's also the starting line of the cash flow statement. The core linkage.`}]};
@@ -563,6 +593,28 @@ function chBuild(d){const has=(...k)=>k.every(x=>d[x]!=null);
 const CHTAG={prof:"#0572CE",liq:"#6A3E8E",ret:"#1B7A47",cash:"#006B72",found:"#C74634"};
 function chStart(d){chRenderSummary(d);CHQ=chBuild(d);chi=0;chScore=0;$("chEntry").classList.add("hidden");$("chResult").classList.add("hidden");$("chQuiz").classList.remove("hidden");
   if(CHQ.length===0){$("chQcard").innerHTML='<div class="chqq">Not enough data came back to build a puzzle. Try another ticker.</div>';return;}chRenderQ();}
+function chRenderSummaryCompare(a,b){const rows=[["Revenue",a.revenue,b.revenue],["Net income",a.netIncome,b.netIncome],["Total assets",a.totalAssets,b.totalAssets],["Total equity",a.totalEquity,b.totalEquity],["Total debt",a.totalDebt,b.totalDebt],["Op. cash flow",a.operatingCashFlow,b.operatingCashFlow],["Capex",a.capex,b.capex]];
+  $("chSummary").innerHTML=`<h2>${a.ticker} vs ${b.ticker}</h2><div class="rule"></div><div class="per">Latest reported period · $ millions</div>
+    <div class="cmpgrid"><div class="cmph"></div><div class="cmph">${a.ticker}</div><div class="cmph">${b.ticker}</div>
+    ${rows.map(r=>`<div class="cmpk">${r[0]}</div><div class="cmpv">${cf$(r[1])}</div><div class="cmpv">${cf$(r[2])}</div>`).join("")}</div>`;}
+function chBuildCompare(a,b){const Q=[],A=a.ticker,B=b.ticker;
+  const cmp=(tag,concept,fa,higherWins,q,fmt)=>{const va=fa(a),vb=fa(b);
+    if(va==null||vb==null||!Number.isFinite(va)||!Number.isFinite(vb)||va===vb)return;
+    const aWins=higherWins?va>vb:va<vb;
+    Q.push({tag,concept,q,options:[{label:A,ok:aWins},{label:B,ok:!aWins}],answer:aWins?0:1,ex:`${A}: ${fmt(va)} · ${B}: ${fmt(vb)}.`});};
+  const r=(num,den)=>d=>(d[num]!=null&&d[den])?d[num]/d[den]:null;
+  cmp("Net margin","prof",r("netIncome","revenue"),true,`Which company had the higher net margin?`,pctF);
+  cmp("Operating margin","prof",r("operatingIncome","revenue"),true,`Which had the higher operating margin?`,pctF);
+  cmp("ROE","ret",r("netIncome","totalEquity"),true,`Which had the higher return on equity (ROE)?`,pctF);
+  cmp("ROA","ret",r("netIncome","totalAssets"),true,`Which had the higher return on assets (ROA)?`,pctF);
+  cmp("Current ratio","liq",r("currentAssets","currentLiabilities"),true,`Which has the stronger current ratio?`,xF);
+  cmp("Leverage","liq",r("totalDebt","totalEquity"),true,`Which is MORE leveraged (higher debt-to-equity)?`,xF);
+  cmp("Asset turnover","ret",r("revenue","totalAssets"),true,`Which has higher asset turnover (revenue per $ of assets)?`,xF);
+  cmp("Self-funding","cash",d=>(d.operatingCashFlow!=null&&d.capex)?d.operatingCashFlow/Math.abs(d.capex):null,true,`Which covers more of its capex with operating cash flow?`,xF);
+  cmp("Capex intensity","cash",d=>(d.capex!=null&&d.revenue)?Math.abs(d.capex)/d.revenue:null,true,`Which spends more on capex relative to revenue?`,pctF);
+  for(let i=Q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[Q[i],Q[j]]=[Q[j],Q[i]];}return Q.slice(0,6);}
+function chStartCompare(a,b){chRenderSummaryCompare(a,b);CHQ=chBuildCompare(a,b);chi=0;chScore=0;$("chEntry").classList.add("hidden");$("chResult").classList.add("hidden");$("chQuiz").classList.remove("hidden");
+  if(CHQ.length===0){$("chQcard").innerHTML='<div class="chqq">Not enough overlapping data to compare these two. Try another pair.</div>';return;}chRenderQ();}
 function chRenderQ(){const q=CHQ[chi];
   $("chQcard").innerHTML=`<div class="chmeta"><span class="chtag" style="background:${CHTAG[q.concept]||'#0572CE'}">${q.tag}</span><span class="chprog">Question ${chi+1} of ${CHQ.length}</span></div>
     <div class="chqq">${q.q}</div><div id="chOpts">${q.options.map((o,i)=>`<button class="chopt" data-i="${i}">${o.label}</button>`).join("")}</div>
