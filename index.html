@@ -181,6 +181,22 @@
   .resetbtn{background:none;border:1px solid var(--border);color:var(--muted);font-weight:600;font-size:12px;border-radius:8px;padding:9px 16px;cursor:pointer}
   .resetbtn:active{transform:scale(.97)}
   .pfnote{font-size:11px;color:var(--muted);margin-top:8px}
+  .edscroll{flex:1;overflow-y:auto;padding:8px 16px 40px}
+  .edsec{font-size:11px;font-weight:700;color:var(--muted);margin:16px 0 7px;text-transform:uppercase;letter-spacing:.6px}
+  .eddeck{display:inline-block;margin:0 6px 6px 0;padding:6px 11px;border:1px solid var(--border);border-radius:16px;background:#fff;font-size:12px;font-weight:600;cursor:pointer}
+  .eddeck.on{background:var(--charcoal);color:#fff;border-color:var(--charcoal)}
+  .edrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:7px}
+  .edrow .et{flex:1;font-size:13px;font-weight:600;min-width:0}
+  .edbtn{border:none;border-radius:7px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer}
+  .edbtn.edit{background:#EEF4FB;color:var(--blue)}.edbtn.del{background:#F9E7E3;color:var(--red)}
+  .edbtn.add{background:var(--green);color:#fff;padding:10px 14px;font-size:13px;margin:6px 8px 0 0}
+  .edbtn.sec{background:var(--charcoal);color:#fff;padding:10px 14px;font-size:13px;margin:6px 8px 0 0}
+  .edfield{margin:11px 0}
+  .edfield label{display:block;font-size:11px;font-weight:700;color:var(--ink2);margin-bottom:4px}
+  .edfield textarea,.edfield input{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#fff;resize:vertical}
+  .edsave{background:var(--red);color:#fff;border:none;border-radius:8px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;margin-top:10px}
+  .edcancel{background:none;border:1px solid var(--border);color:var(--ink2);border-radius:8px;padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;margin-left:8px}
+  .edfoot{margin-top:20px;border-top:1px solid var(--border);padding-top:12px}
 </style>
 </head>
 <body>
@@ -232,7 +248,8 @@
     <div class="pathhead"><svg class="finn"><use href="#finn-sym"/></svg>
       <div><div class="ttl">Oracle <span>Solutions</span></div><div class="sub">The products you sell — Fusion Cloud apps and Energy &amp; Water. Browse any deck.</div></div></div>
     <div id="solList"></div>
-    <div class="chfoot" style="margin:18px 4px">Product facts summarized from oracle.com &amp; docs.oracle.com — verify current details before client use.</div>
+    <div class="pathfoot"><button class="resetbtn" onclick="openEditor()">✏️ Edit content</button></div>
+    <div class="chfoot" style="margin:14px 4px">Product facts summarized from oracle.com &amp; docs.oracle.com — verify current details before client use.</div>
   </div>
 
   <div class="scroll hidden" id="vault">
@@ -275,6 +292,11 @@
     <div class="coach"><svg class="finn" id="finn"><use href="#finn-sym"/></svg><div class="bubble" id="bubble">Tap to flip · swipe right when you've got it.</div></div>
     <div class="stage" id="stage"></div>
     <div class="actions"><button class="btn review" id="bReview">↩</button><button class="btn flip" id="bFlip">⟳</button><button class="btn got" id="bGot">✓</button></div>
+  </div>
+
+  <div class="hidden" id="editor" style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <div class="lessonbar"><button class="x" id="edX">✕</button><div class="lname">Content editor</div><div class="lct"></div></div>
+    <div class="edscroll" id="edBody"></div>
   </div>
 
   <div class="nav hidden" id="nav">
@@ -428,7 +450,7 @@ function say(k){$("bubble").textContent=pick(SAY[k]);popFinn();}
 function popFinn(){const f=$("finn");if(!f)return;f.classList.remove("pop");void f.offsetWidth;f.classList.add("pop");}
 
 function show(scr){
-  ["start","path","solutions","vault","challenge","lesson"].forEach(s=>$(s).classList.add("hidden"));
+  ["start","path","solutions","vault","challenge","lesson","editor"].forEach(s=>$(s).classList.add("hidden"));
   const navOn=(scr==="path"||scr==="solutions"||scr==="vault"||scr==="challenge");
   $("topbar").classList.toggle("hidden",!navOn);$("nav").classList.toggle("hidden",!navOn);$("oraO").classList.toggle("hidden",!navOn);
   $(scr).classList.remove("hidden");
@@ -631,6 +653,50 @@ function chFinish(){$("chQuiz").classList.add("hidden");$("chResult").classList.
   (pct>=0.6?SFX.win:SFX.lose)();}
 function chSpark(){for(let i=0;i<6;i++)spawnSpark(window.innerWidth/2+(Math.random()-.5)*180,200+Math.random()*60);}
 
+/* ===== Content editor (backend-free; edits persist to this device, export/import JSON) ===== */
+const CONTENT_KEY="finfluency_content_v1";
+const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const escA=s=>esc(s).replace(/"/g,"&quot;");
+function saveContent(){try{localStorage.setItem(CONTENT_KEY,JSON.stringify({units:UNITS,solutions:SOLUTIONS}));}catch(e){}}
+function loadContent(){try{const s=JSON.parse(localStorage.getItem(CONTENT_KEY)||"null");if(s&&Array.isArray(s.units)&&Array.isArray(s.solutions)){UNITS.length=0;UNITS.push(...s.units);SOLUTIONS.length=0;SOLUTIONS.push(...s.solutions);}}catch(e){}}
+let edTrack="S",edDeck=0,edCard=-1;
+function openEditor(){edTrack="S";edDeck=0;edCard=-1;show("editor");renderEditor();}
+function edDeckRef(){return (edTrack==="U"?UNITS:SOLUTIONS)[edDeck];}
+function edSelect(t,i){edTrack=t;edDeck=i;edCard=-1;renderEditor();}
+function edEditCard(i){edCard=i;renderEditor();}
+function edCancelCard(){edCard=-1;renderEditor();}
+function edAddCard(){const d=edDeckRef();d.cards.push({t:"New term",p:"Prompt goes here?",a:"",b:"",c:""});edCard=d.cards.length-1;saveContent();renderEditor();}
+function edDeleteCard(i){const d=edDeckRef();if(d.cards.length<=1){toast("A deck needs at least one card");return;}if(!confirm("Delete this card?"))return;d.cards.splice(i,1);saveContent();renderEditor();}
+function edSaveCard(){const c=edDeckRef().cards[edCard];c.t=$("edT").value.trim();c.p=$("edP").value.trim();c.a=$("edA").value.trim();c.b=$("edB").value.trim();c.c=$("edC").value.trim();const d=$("edD").value.trim();if(d)c.d=d;else delete c.d;saveContent();edCard=-1;renderEditor();toast("Card saved ✓");}
+function edAddDeck(){const n=prompt("New Solutions deck name:");if(!n)return;SOLUTIONS.push({n:n.trim(),ic:"🟥",color:"#C74634",tl:"Discovery hook",dl:"🔗 Notes",cards:[{t:"New term",p:"Prompt goes here?",a:"",b:"",c:""}]});edTrack="S";edDeck=SOLUTIONS.length-1;edCard=0;saveContent();renderEditor();}
+function edExport(){const blob=new Blob([JSON.stringify({units:UNITS,solutions:SOLUTIONS},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="finfluency-content.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast("Exported finfluency-content.json");}
+function edImport(input){const f=input.files&&input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const j=JSON.parse(rd.result);if(Array.isArray(j.units)&&Array.isArray(j.solutions)){UNITS.length=0;UNITS.push(...j.units);SOLUTIONS.length=0;SOLUTIONS.push(...j.solutions);saveContent();edTrack="S";edDeck=0;edCard=-1;renderEditor();toast("Content imported ✓");}else toast("Invalid file — need {units,solutions}");}catch(e){toast("Couldn't parse that JSON");}};rd.readAsText(f);input.value="";}
+function edResetContent(){if(!confirm("Reset ALL content to the built-in version? Your edits will be lost (export first if you want a backup)."))return;try{localStorage.removeItem(CONTENT_KEY);}catch(e){}location.reload();}
+function renderEditor(){
+  const deck=edDeckRef();let h="";
+  h+=`<div class="edsec">Path units</div>`;
+  UNITS.forEach((u,i)=>h+=`<span class="eddeck ${edTrack==="U"&&edDeck===i?"on":""}" onclick="edSelect('U',${i})">${esc(u.n)}</span>`);
+  h+=`<div class="edsec">Solutions decks</div>`;
+  SOLUTIONS.forEach((u,i)=>h+=`<span class="eddeck ${edTrack==="S"&&edDeck===i?"on":""}" onclick="edSelect('S',${i})">${esc(u.n)}</span>`);
+  h+=`<div><button class="edbtn sec" onclick="edAddDeck()">+ New Solutions deck</button></div>`;
+  h+=`<div class="edsec">${esc(deck.n)} — cards</div>`;
+  if(edCard>=0){
+    const c=deck.cards[edCard];
+    const fld=(id,lab,val,ta)=>`<div class="edfield"><label>${esc(lab)}</label>${ta?`<textarea id="${id}" rows="2">${esc(val)}</textarea>`:`<input id="${id}" value="${escA(val)}"/>`}</div>`;
+    h+=fld("edT","Term (title)",c.t,false)+fld("edP","Front prompt (question)",c.p,true)+fld("edA","What it is",c.a,true)+fld("edB","Why it matters",c.b,true)+fld("edC",deck.tl||"Link",c.c,true)+fld("edD",(deck.dl||"Extra")+" (optional)",c.d,true);
+    h+=`<button class="edsave" onclick="edSaveCard()">Save card</button><button class="edcancel" onclick="edCancelCard()">Cancel</button>`;
+  }else{
+    deck.cards.forEach((c,i)=>h+=`<div class="edrow"><div class="et">${i+1}. ${esc(c.t)}</div><button class="edbtn edit" onclick="edEditCard(${i})">Edit</button><button class="edbtn del" onclick="edDeleteCard(${i})">✕</button></div>`);
+    h+=`<button class="edbtn add" onclick="edAddCard()">+ Add card</button>`;
+    h+=`<div class="edfoot"><div class="edsec">Backup &amp; share</div>
+      <button class="edbtn sec" onclick="edExport()">⬇ Export JSON</button>
+      <label class="edbtn sec" style="display:inline-block">⬆ Import JSON<input type="file" accept="application/json" style="display:none" onchange="edImport(this)"></label>
+      <button class="edbtn del" style="padding:10px 14px;font-size:13px;margin:6px 8px 0 0" onclick="edResetContent()">↺ Reset to built-in</button>
+      <div class="pfnote" style="margin-top:8px">Edits save to this device only. Export the JSON and send it to bake changes into the shared app for everyone.</div></div>`;
+  }
+  $("edBody").innerHTML=h;
+}
+
 /* ===== Sound effects (Web Audio API — synthesized, no files, works offline) ===== */
 const SND_KEY="finfluency_sound";let soundOn=true,actx=null;
 function loadSound(){try{soundOn=localStorage.getItem(SND_KEY)!=="0";}catch(e){}updateSndBtn();}
@@ -661,8 +727,10 @@ $("startBtn").onclick=()=>{audio();show("path");};
 $("navPath").onclick=()=>show("path");$("navSolutions").onclick=()=>show("solutions");$("navVault").onclick=()=>show("vault");$("navChallenge").onclick=()=>show("challenge");
 $("resetBtn").onclick=()=>{if(confirm("Reset all progress? This clears your XP, level, streak and Vault on this device."))resetProgress();};
 $("sndBtn").onclick=toggleSound;
+$("edX").onclick=()=>show("solutions");
 window.openLesson=openLesson;window.openDeck=openDeck;window.viewCard=viewCard;
-load();loadSound();updateHUD();
+window.openEditor=openEditor;window.edSelect=edSelect;window.edEditCard=edEditCard;window.edDeleteCard=edDeleteCard;window.edAddCard=edAddCard;window.edSaveCard=edSaveCard;window.edCancelCard=edCancelCard;window.edAddDeck=edAddDeck;window.edExport=edExport;window.edImport=edImport;window.edResetContent=edResetContent;
+loadContent();load();loadSound();updateHUD();
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 </body>
