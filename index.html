@@ -533,7 +533,7 @@ function attachSwipe(card){if(!card)return;const inner=card.querySelector(".card
     if(dx>90)commit(card,1);else if(dx<-90)commit(card,-1);else{card.style.transform="";yes.style.opacity=0;no.style.opacity=0;}};
   card.addEventListener("pointerup",end);card.addEventListener("pointercancel",end);}
 function commit(card,dir){card.style.transform=`translate(${dir*600}px,${dir*40}px) rotate(${dir*30}deg)`;card.style.opacity="0";const ci=lq.shift();
-  if(dir>0){mastered.add(deckCardId(ci));addXp(10);streak++;if(streak%5===0){toast("🔥 "+streak+" streak!");SFX.streak();}else SFX.correct();say("got");sparkle();}
+  if(dir>0){mastered.add(deckCardId(ci));addXp(10);streak++;if(streak%5===0)toast("🔥 "+streak+" streak!");SFX.correct();say("got");sparkle();}
   else{addXp(3);streak=0;lq.push(ci);say("review");SFX.wrong();}save();setTimeout(()=>{updateHUD();renderStage();},330);}
 function finishLesson(){const done=curDeck.cards.every((_,c)=>mastered.has(deckCardId(c)));
   toast(done?(curTrack==="U"?"Unit "+(curIdx+1)+" complete! 🎉":curDeck.n+" — deck complete! 🎉"):"Nice work!");
@@ -648,7 +648,7 @@ function chRenderQ(){const q=CHQ[chi];
   $("chNext").onclick=()=>{chi++;chi<CHQ.length?chRenderQ():chFinish();};}
 function chChoose(i){const q=CHQ[chi];
   document.querySelectorAll("#chOpts .chopt").forEach((b,idx)=>{b.onclick=null;if(idx===q.answer)b.classList.add("correct");else if(idx===i)b.classList.add("wrong");else b.classList.add("dim");});
-  if(i===q.answer){chScore++;addXp(8);streak++;if(streak%5===0){toast("🔥 "+streak+" streak!");SFX.streak();}else SFX.correct();chSpark();}else{streak=0;updateHUD();SFX.wrong();}save();
+  if(i===q.answer){chScore++;addXp(8);streak++;if(streak%5===0)toast("🔥 "+streak+" streak!");SFX.correct();chSpark();}else{streak=0;updateHUD();SFX.wrong();}save();
   $("chEx").classList.add("show");$("chNext").classList.add("show");}
 function chFinish(){$("chQuiz").classList.add("hidden");$("chResult").classList.remove("hidden");$("chRScore").textContent=chScore+" / "+CHQ.length;
   const pct=chScore/CHQ.length;$("chRTitle").textContent=pct===1?"Flawless! 🏆":pct>=0.6?"Solid work! 💪":"Keep practicing!";
@@ -713,7 +713,6 @@ function blip(freqs,dur,type,vol,gap){if(!soundOn)return;const ctx=audio();if(!c
 function buzz(p){if(!soundOn)return;try{navigator.vibrate&&navigator.vibrate(p);}catch(e){}}
 const SFX={
   correct:()=>{blip([659,880,1175],0.11,"triangle",0.2,0.012);buzz(18);},        // rising "ta-da" chime
-  streak:()=>{blip([784,988,1319,1568],0.085,"square",0.12,0.012);buzz([12,30,12]);}, // sparkly run for milestones
   level:()=>{blip([523,659,784,1047],0.14,"triangle",0.22,0.02);buzz([18,40,18,40]);}, // C-E-G-C fanfare on level up
   wrong:()=>{blip([330,247],0.16,"sine",0.14,0.0);buzz(35);},                    // gentle low "no worries" tone
   flip:()=>blip([520],0.045,"sine",0.06),                                         // subtle tick on card flip (no buzz)
