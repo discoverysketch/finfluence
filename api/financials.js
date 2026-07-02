@@ -61,28 +61,26 @@ async function fromEdgar(ticker) {
   const usd = (c) => facts.facts?.["us-gaap"]?.[c]?.units?.USD || null;
   const days = (s, e) => Math.round((new Date(e) - new Date(s)) / 86400000);
 
+  // Pick the value from the most RECENT reporting period across ALL listed concepts.
+  // (Gathering across concepts avoids returning a deprecated tag's stale data — e.g. a
+  // company that switched revenue tags years ago. Concept order is only a tie-break.)
+  const sortRows = (a, b) => (a.end < b.end ? 1 : a.end > b.end ? -1 : (a.filed < b.filed ? 1 : a.filed > b.filed ? -1 : a._ci - b._ci));
   const pickInstant = (concepts) => {
-    for (const c of concepts) {
-      const arr = usd(c); if (!arr) continue;
-      const rows = arr.filter((x) => x.form === "10-Q" || x.form === "10-K");
-      if (!rows.length) continue;
-      rows.sort((a, b) => (a.end < b.end ? 1 : a.end > b.end ? -1 : (a.filed < b.filed ? 1 : -1)));
-      return { val: rows[0].val, end: rows[0].end };
-    }
-    return null;
+    const rows = [];
+    concepts.forEach((c, ci) => { const arr = usd(c); if (arr) for (const x of arr) if (x.form === "10-Q" || x.form === "10-K") rows.push({ ...x, _ci: ci }); });
+    if (!rows.length) return null;
+    rows.sort(sortRows);
+    return { val: rows[0].val, end: rows[0].end };
   };
   const pickDuration = (concepts) => {
-    for (const c of concepts) {
-      const arr = usd(c); if (!arr) continue;
-      const rows = arr.filter((x) => x.start && x.end && (x.form === "10-Q" || x.form === "10-K"));
-      if (!rows.length) continue;
-      const q = rows.filter((x) => { const d = days(x.start, x.end); return d >= 80 && d <= 100; });
-      const pool = q.length ? q : rows;
-      pool.sort((a, b) => (a.end < b.end ? 1 : a.end > b.end ? -1 : (a.filed < b.filed ? 1 : -1)));
-      const t = pool[0];
-      return { val: t.val, end: t.end, fy: t.fy, fp: t.fp, days: days(t.start, t.end) };
-    }
-    return null;
+    const all = [];
+    concepts.forEach((c, ci) => { const arr = usd(c); if (arr) for (const x of arr) if (x.start && x.end && (x.form === "10-Q" || x.form === "10-K")) all.push({ ...x, _ci: ci }); });
+    if (!all.length) return null;
+    const std = all.filter((x) => { const d = days(x.start, x.end); return (d >= 80 && d <= 100) || (d >= 350 && d <= 380); });
+    const pool = std.length ? std : all;
+    pool.sort(sortRows);
+    const t = pool[0];
+    return { val: t.val, end: t.end, fy: t.fy, fp: t.fp, days: days(t.start, t.end) };
   };
   const M = (v) => (v == null ? undefined : Math.round((v / 1e6) * 10) / 10);
 
