@@ -703,10 +703,11 @@ function chSpark(){for(let i=0;i<6;i++)spawnSpark(window.innerWidth/2+(Math.rand
 
 /* ===== Content editor (backend-free; edits persist to this device, export/import JSON) ===== */
 const CONTENT_KEY="finfluency_content_v1";
+const CONTENT_VERSION=2;
 const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const escA=s=>esc(s).replace(/"/g,"&quot;");
-function saveContent(){try{localStorage.setItem(CONTENT_KEY,JSON.stringify({units:UNITS,solutions:SOLUTIONS}));}catch(e){}}
-function loadContent(){try{const s=JSON.parse(localStorage.getItem(CONTENT_KEY)||"null");if(s&&Array.isArray(s.units)&&Array.isArray(s.solutions)){UNITS.length=0;UNITS.push(...s.units);SOLUTIONS.length=0;SOLUTIONS.push(...s.solutions);}}catch(e){}}
+function saveContent(){try{localStorage.setItem(CONTENT_KEY,JSON.stringify({v:CONTENT_VERSION,units:UNITS,solutions:SOLUTIONS}));}catch(e){}}
+function loadContent(){try{const s=JSON.parse(localStorage.getItem(CONTENT_KEY)||"null");if(s&&s.v===CONTENT_VERSION&&Array.isArray(s.units)&&Array.isArray(s.solutions)){UNITS.length=0;UNITS.push(...s.units);SOLUTIONS.length=0;SOLUTIONS.push(...s.solutions);}else if(s){try{localStorage.removeItem(CONTENT_KEY);}catch(e){}}}catch(e){}}
 let edTrack="S",edDeck=0,edCard=-1;
 function openEditor(){edTrack="S";edDeck=0;edCard=-1;show("editor");renderEditor();}
 function edDeckRef(){return (edTrack==="U"?UNITS:SOLUTIONS)[edDeck];}
