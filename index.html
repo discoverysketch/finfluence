@@ -68,7 +68,8 @@
 
   /* lesson */
   .lessonbar{display:flex;align-items:center;gap:10px;padding:12px 16px 4px}
-  .lessonbar .x{background:none;border:none;color:var(--ink2);font-size:22px;font-weight:700;cursor:pointer;line-height:1}
+  .lessonbar .x{display:inline-flex;align-items:center;gap:5px;background:var(--cream2);border:1px solid var(--border);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer;line-height:1;padding:9px 14px;border-radius:9px;white-space:nowrap}
+  .lessonbar .x:active{transform:scale(.96)}
   .lessonbar .lname{font-weight:700;font-size:14px;flex:1}
   .lessonbar .lct{font-size:12px;color:var(--ink2);font-weight:600}
   .coach{display:flex;align-items:flex-end;gap:9px;margin:8px 16px;min-height:70px}
@@ -295,14 +296,14 @@
   </div>
 
   <div class="hidden" id="lesson" style="display:flex;flex-direction:column;flex:1;min-height:0">
-    <div class="lessonbar"><button class="x" id="lessonX">✕</button><div class="lname" id="lessonName">Unit</div><div class="lct" id="lessonCt">0 left</div></div>
+    <div class="lessonbar"><button class="x" id="lessonX">✕ Exit</button><div class="lname" id="lessonName">Unit</div><div class="lct" id="lessonCt">0 left</div></div>
     <div class="coach"><svg class="finn" id="finn"><use href="#finn-sym"/></svg><div class="bubble" id="bubble">Tap to flip · swipe right when you've got it.</div></div>
     <div class="stage" id="stage"></div>
     <div class="actions"><button class="btn review" id="bReview">↩</button><button class="btn flip" id="bFlip">⟳</button><button class="btn got" id="bGot">✓</button></div>
   </div>
 
   <div class="hidden" id="editor" style="display:flex;flex-direction:column;flex:1;min-height:0">
-    <div class="lessonbar"><button class="x" id="edX">✕</button><div class="lname">Content editor</div><div class="lct"></div></div>
+    <div class="lessonbar"><button class="x" id="edX">✕ Close</button><div class="lname">Content editor</div><div class="lct"></div></div>
     <div class="edscroll" id="edBody"></div>
   </div>
 
